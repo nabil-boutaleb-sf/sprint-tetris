@@ -90,11 +90,14 @@ export default function Board() {
                 {/* Main Board Area */}
                 <div className="flex-1 flex flex-col min-w-0">
                     <header className="px-8 py-6 flex justify-between items-center border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
-                        <div>
-                            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
-                                Sprint Tetris
-                            </h1>
-                            <p className="text-slate-500 text-sm">Capacity Visualization</p>
+                        <div className="flex items-center gap-3">
+                            <img src="/logo.png" alt="Sprint Tetris Logo" className="w-10 h-10 rounded-lg shadow-sm" />
+                            <div>
+                                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
+                                    Sprint Tetris
+                                </h1>
+                                <p className="text-slate-500 text-sm">Capacity Visualization</p>
+                            </div>
                         </div>
                         <div className="flex gap-4 items-center">
                             <select

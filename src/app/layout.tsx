@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sprint Tetris",
   description: "Capacity Visualization for Agile Teams",
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({
