@@ -92,9 +92,9 @@ export default function Board() {
                     <header className="px-8 py-6 flex justify-between items-center border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
                         <div>
                             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
-                                Sprint Viz Board
+                                Sprint Tetris
                             </h1>
-                            <p className="text-slate-500 text-sm">Capacity Planning</p>
+                            <p className="text-slate-500 text-sm">Capacity Visualization</p>
                         </div>
                         <div className="flex gap-4 items-center">
                             <select

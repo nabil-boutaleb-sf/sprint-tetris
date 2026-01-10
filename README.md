@@ -1,4 +1,4 @@
-# SLT Viz Board (Sprint Capacity Visualizer)
+# Sprint Tetris
 
 A "Sprint Tetris" style visualization tool for leadership teams to understand sprint capacity, workload, and constraints at a glance.
 
