@@ -9,6 +9,8 @@ import { TaskCard } from './TaskCard';
 import { Task } from '@/types';
 import { Moon, Sun } from 'lucide-react';
 import { TaskDetailModal } from './TaskDetailModal';
+import Link from 'next/link';
+import { AssigneeLegend } from './AssigneeLegend';
 
 export default function Board() {
     const { tasks, sprints, moveTask, filterAssignee, setFilterAssignee } = useBoardStore();
@@ -24,7 +26,7 @@ export default function Board() {
 
     const [activeDragTask, setActiveDragTask] = useState<Task | null>(null);
     const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null); // For Modal
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
     // Theme Toggle Logic
     useEffect(() => {
@@ -46,7 +48,7 @@ export default function Board() {
         return sprintTasks;
     };
     const backlogTasks = tasks.filter(t => {
-        const isBacklog = !t.sprint; // null or undefined or empty string
+        const isBacklog = !t.sprint;
         if (filterAssignee) return isBacklog && t.assignee === filterAssignee;
         return isBacklog;
     });
@@ -64,7 +66,7 @@ export default function Board() {
 
         const taskId = active.id as string;
         const targetType = over.data.current?.type;
-        const targetName = over.data.current?.name; // Sprint Name 
+        const targetName = over.data.current?.name;
 
         if (targetType === 'backlog') {
             moveTask(taskId, null);
@@ -79,49 +81,61 @@ export default function Board() {
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
-            <div className="flex h-screen w-full bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-200 overflow-hidden font-sans selection:bg-purple-500/30 transition-colors duration-300">
+            <div className="flex h-screen w-full overflow-hidden font-sans selection:bg-purple-500/30 text-slate-100">
 
-                {/* Backlog Sidebar - Left Side */}
+                {/* Backlog Sidebar */}
                 <BacklogArea
                     tasks={backlogTasks}
                     onTaskClick={setSelectedTask}
                 />
 
                 {/* Main Board Area */}
-                <div className="flex-1 flex flex-col min-w-0">
-                    <header className="px-8 py-6 flex justify-between items-center border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 relative z-30">
-                        <div className="flex items-center gap-3">
-                            <img src="/logo.png" alt="Sprint Tetris Logo" className="w-10 h-10 rounded-lg shadow-sm" />
+                <div className="flex-1 flex flex-col min-w-0 relative z-10">
+                    {/* Header */}
+                    <header className="px-8 py-5 flex justify-between items-center glass border-b-0 m-4 rounded-2xl shadow-lg shrink-0">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg transform rotate-3">
+                                <span className="text-2xl">🧩</span>
+                            </div>
                             <div>
-                                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
+                                <h1 className="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200 drop-shadow-sm">
                                     Sprint Tetris
                                 </h1>
-                                <p className="text-slate-500 text-sm">Capacity Visualization</p>
+                                <p className="text-white/60 text-xs font-medium tracking-wide uppercase">Capacity Visualization</p>
                             </div>
                         </div>
-                        <div className="flex gap-4 items-center h-full">
-                            <select
-                                className="bg-slate-100 dark:bg-slate-800 border-none text-sm rounded-md px-3 py-2 outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                                value={filterAssignee || ''}
-                                onChange={(e) => setFilterAssignee(e.target.value || null)}
+                        <div className="flex gap-4 items-center">
+
+                            {/* Legend Filter */}
+                            <AssigneeLegend />
+
+                            {/* Separator */}
+                            <div className="w-px h-6 bg-white/10 mx-1" />
+
+                            {/* Management Link */}
+                            <Link
+                                href="/manage"
+                                className="group relative px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
+                                title="Manage Sprints"
                             >
-                                <option value="">All Assignees</option>
-                                {/* Unique assignees */}
-                                {Array.from(new Set(tasks.map(t => t.assignee).filter(Boolean))).map(assignee => (
-                                    <option key={assignee} value={assignee as string}>{assignee}</option>
-                                ))}
-                            </select>
+                                <span className="text-xl">⚙️</span>
+                                <span className="absolute top-10 right-0 w-max px-2 py-1 bg-black/80 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none backdrop-blur-sm">
+                                    Manage Sprints
+                                </span>
+                            </Link>
+
                             <button
                                 onClick={toggleTheme}
-                                className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                                className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/80 hover:text-white"
                             >
                                 {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                             </button>
                         </div>
                     </header>
 
-                    <div className="flex-1 overflow-auto p-8">
-                        <div className="flex gap-6 min-h-full pb-20">
+                    {/* Horizontal Scrollable Area */}
+                    <div className="flex-1 overflow-x-auto overflow-y-hidden px-4 pb-4">
+                        <div className="flex gap-6 h-full items-start pt-2 px-2">
                             {sprints.map(sprint => (
                                 <DroppableSprintColumn
                                     key={sprint.name}
@@ -130,12 +144,17 @@ export default function Board() {
                                     onTaskClick={setSelectedTask}
                                 />
                             ))}
+                            {/* Spacer for right padding */}
+                            <div className="w-2 shrink-0" />
                         </div>
                     </div>
                 </div>
 
-                {/* Drag Overlay for smooth visuals */}
-                <DragOverlay>
+                {/* Drag Overlay */}
+                <DragOverlay dropAnimation={{
+                    duration: 200,
+                    easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+                }}>
                     {activeDragTask ? (
                         <div className="opacity-90 rotate-2 scale-105 cursor-grabbing w-[280px]">
                             <TaskCard task={activeDragTask} />

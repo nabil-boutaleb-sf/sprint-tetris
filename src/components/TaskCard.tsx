@@ -1,6 +1,7 @@
 import { Task } from '@/types';
 import { calculateTaskHeight } from '@/lib/uiUtils';
 import clsx from 'clsx';
+import { motion } from 'framer-motion';
 
 interface TaskCardProps {
     task: Task;
@@ -9,50 +10,69 @@ interface TaskCardProps {
 
 export const TaskCard = ({ task, onClick }: TaskCardProps) => {
     const height = calculateTaskHeight(task.points);
-
-    // "Tiny Mode" for anything less than 24px (roughly < 0.6 pts)
-    const isTiny = height < 24;
+    const isTiny = height < 28; // Increased threshold slightly for better readability
 
     return (
-        <div
+        <motion.div
             onClick={onClick}
             style={{ height: `${height}px` }}
-            data-debug-height={height}
-            data-points={task.points}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.01, zIndex: 10 }}
             className={clsx(
-                'w-full rounded-md relative overflow-hidden transition-all duration-200 hover:brightness-110 shadow-sm border border-white/5',
+                'w-full relative overflow-hidden transition-shadow shadow-sm active:shadow-md group',
+                // Glass-like styling for tasks but maintaining color identity
+                'backdrop-blur-sm border',
+                // Use a subtle gradient overlay on the task color
+                'bg-gradient-to-br from-white/10 to-transparent',
                 task.color || 'bg-slate-700',
-                'group cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-white/20',
-                // Remove mb-1, gap handles spacing now.
+                'border-white/10 hover:border-white/30 hover:ring-2 hover:ring-white/20 hover:shadow-lg hover:shadow-purple-500/10',
+                isTiny ? 'rounded-sm' : 'rounded-lg' // Sharper edges for small blocks
             )}
         >
             <div className={clsx(
                 "h-full flex flex-col justify-center",
-                isTiny ? "px-1 py-0 items-center text-center" : "px-2 py-1"
+                isTiny ? "px-1 items-center" : "px-3 py-2"
             )}>
                 {isTiny ? (
-                    // TINY MODE: Just title, centered vertically
-                    <span className="truncate text-white/90 w-full block text-[10px] font-medium leading-none">
-                        {task.title}
-                    </span>
+                    <div className="flex items-center gap-1 w-full justify-center">
+                        <span className="truncate text-white/90 text-[10px] font-bold leading-tight drop-shadow-sm">
+                            {task.title}
+                        </span>
+                    </div>
                 ) : (
-                    // NORMAL MODE
                     <>
-                        <div className="flex justify-between items-start">
-                            <span className="font-semibold truncate text-white/90 w-full text-xs">{task.title}</span>
+                        {/* Normal Layout */}
+                        <div className="flex justify-between items-start gap-1">
+                            <span className="font-semibold truncate text-white text-xs leading-snug drop-shadow-sm">
+                                {task.title}
+                            </span>
                         </div>
-                        <div className="text-white/60 text-[10px] flex justify-between mt-auto">
-                            <span>{task.points} pts</span>
-                            {task.assignee && <span>{task.assignee}</span>}
+
+                        {/* Footer Info */}
+                        <div className="text-white/70 text-[10px] flex justify-between items-center mt-auto font-medium">
+                            <span className="bg-black/20 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
+                                {task.points} pts
+                            </span>
+                            {task.assignee && (
+                                <span className="truncate max-w-[50%] opacity-80 hover:opacity-100 transition-opacity">
+                                    {task.assignee}
+                                </span>
+                            )}
                         </div>
                     </>
                 )}
             </div>
 
-            {/* Striped pattern overlay for done tasks? Maybe later. */}
+            {/* Shimmer Effect on Hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+
+            {/* Done Status Overlay */}
             {task.status === 'Done' && (
-                <div className="absolute inset-0 bg-white/10 pointer-events-none" />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
+                    <span className="text-white font-bold text-xs tracking-widest uppercase border border-white/50 px-2 py-1 rounded rotate-[-10deg]">Done</span>
+                </div>
             )}
-        </div>
+        </motion.div>
     );
 };
