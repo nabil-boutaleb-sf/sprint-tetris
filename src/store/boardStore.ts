@@ -34,18 +34,15 @@ export const useBoardStore = create<BoardState>((set) => ({
             tasks: state.tasks.map((t) => {
                 if (t.id !== taskId) return t;
 
-                // If target is null, it means Backlog -> Clear sprints array
+                // If target is null, it means Backlog
                 if (!targetSprint) {
-                    return { ...t, sprints: [], status: 'Backlog' };
+                    return { ...t, sprint: null, status: 'Backlog' };
                 }
 
-                // If moving to a sprint, Replace the sprint list? 
-                // For "Sprint Tetris" prototype, dragging usually implies "It is NOW in this sprint".
-                // Multi-select is tricky with simple DnD. Let's assume DnD = "Move to this sprint exclusive".
-                // If user wants multi-select, they might need a different UI interaction later.
+                // Move to new sprint
                 return {
                     ...t,
-                    sprints: [targetSprint],
+                    sprint: targetSprint,
                     status: 'To Do' // Reset status when moving to plain sprint? Or keep it? Let's keep status if possible, or default to To Do.
                 };
             })

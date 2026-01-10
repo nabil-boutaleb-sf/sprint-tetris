@@ -39,14 +39,14 @@ export default function Board() {
 
     // Data Selectors
     const getTasksForSprint = (sprintName: string) => {
-        let sprintTasks = tasks.filter(t => t.sprints.includes(sprintName));
+        let sprintTasks = tasks.filter(t => t.sprint === sprintName);
         if (filterAssignee) {
             sprintTasks = sprintTasks.filter(t => t.assignee === filterAssignee);
         }
         return sprintTasks;
     };
     const backlogTasks = tasks.filter(t => {
-        const isBacklog = t.sprints.length === 0;
+        const isBacklog = !t.sprint; // null or undefined or empty string
         if (filterAssignee) return isBacklog && t.assignee === filterAssignee;
         return isBacklog;
     });
@@ -89,7 +89,7 @@ export default function Board() {
 
                 {/* Main Board Area */}
                 <div className="flex-1 flex flex-col min-w-0">
-                    <header className="px-8 py-6 flex justify-between items-center border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+                    <header className="px-8 py-6 flex justify-between items-center border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 relative z-30">
                         <div className="flex items-center gap-3">
                             <img src="/logo.png" alt="Sprint Tetris Logo" className="w-10 h-10 rounded-lg shadow-sm" />
                             <div>
@@ -99,7 +99,7 @@ export default function Board() {
                                 <p className="text-slate-500 text-sm">Capacity Visualization</p>
                             </div>
                         </div>
-                        <div className="flex gap-4 items-center">
+                        <div className="flex gap-4 items-center h-full">
                             <select
                                 className="bg-slate-100 dark:bg-slate-800 border-none text-sm rounded-md px-3 py-2 outline-none cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                                 value={filterAssignee || ''}
@@ -120,8 +120,8 @@ export default function Board() {
                         </div>
                     </header>
 
-                    <div className="flex-1 overflow-x-auto overflow-y-hidden p-8">
-                        <div className="flex gap-6 h-full pb-20">
+                    <div className="flex-1 overflow-auto p-8">
+                        <div className="flex gap-6 min-h-full pb-20">
                             {sprints.map(sprint => (
                                 <DroppableSprintColumn
                                     key={sprint.name}

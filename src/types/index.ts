@@ -3,7 +3,7 @@ export type SprintName = string;
 export interface Task {
     id: string;
     title: string;
-    sprints: SprintName[]; // Can belong to multiple sprints
+    sprint: SprintName | null; // Can belong to ONE sprint (or null for Backlog)
     points: number;
     status: 'To Do' | 'In Progress' | 'Done' | 'Backlog';
     assignee?: string;

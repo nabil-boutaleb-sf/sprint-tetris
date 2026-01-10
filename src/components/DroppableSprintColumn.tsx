@@ -27,7 +27,7 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
 
     let capacityColor = 'bg-slate-800/50 dark:bg-slate-800/50 bg-slate-100';
     let borderColor = 'border-slate-700 dark:border-slate-700 border-slate-300';
-    let badgeColor = 'bg-slate-700 text-slate-300 dark:bg-slate-700 dark:text-slate-300 bg-slate-200 text-slate-700';
+    let badgeColor = 'bg-slate-700 text-slate-300 dark:bg-slate-700 dark:text-slate-300 bg-slate-200 text-slate-600 font-medium';
 
     if (fillPercentage > 100) {
         borderColor = 'border-red-500/50 dark:border-red-500/50 border-red-500/50';
@@ -62,16 +62,18 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
 
             <div
                 className={clsx(
-                    "relative rounded-xl border-2 transition-all duration-200 p-1 flex flex-col justify-end backdrop-blur-sm",
+                    "relative rounded-xl border-2 transition-all duration-200 p-1 flex flex-col justify-end backdrop-blur-sm overflow-hidden",
                     borderColor,
                     capacityColor
                 )}
-                style={{ height: `${capacityHeight + 20}px`, minHeight: '100px' }}
+                style={{ height: `${capacityHeight + 20}px` }}
             >
-                <div className="flex flex-col gap-0.5 z-10 w-full">
+                <div className="flex flex-col gap-[1px] z-10 w-full overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-400 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent max-h-full">
                     {tasks.map(task => (
                         <DraggableTask key={task.id} task={task} onTaskClick={() => onTaskClick(task)} />
                     ))}
+                    {/* Spacer to allow dropping at the very bottom if full */}
+                    <div className="min-h-[20px] shrink-0" />
                 </div>
 
                 {fillPercentage > 100 && (

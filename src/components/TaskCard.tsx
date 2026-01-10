@@ -10,34 +10,42 @@ interface TaskCardProps {
 export const TaskCard = ({ task, onClick }: TaskCardProps) => {
     const height = calculateTaskHeight(task.points);
 
-    // Dynamic font size for very small cards
-    const isTiny = height < 20;
+    // "Tiny Mode" for anything less than 24px (roughly < 0.6 pts)
+    const isTiny = height < 24;
 
     return (
         <div
             onClick={onClick}
             style={{ height: `${height}px` }}
+            data-debug-height={height}
+            data-points={task.points}
             className={clsx(
-                'w-full rounded-md mb-1 relative overflow-hidden transition-all duration-200 hover:brightness-110 shadow-sm border border-white/5',
+                'w-full rounded-md relative overflow-hidden transition-all duration-200 hover:brightness-110 shadow-sm border border-white/5',
                 task.color || 'bg-slate-700',
-                'group cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-white/20'
+                'group cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-white/20',
+                // Remove mb-1, gap handles spacing now.
             )}
         >
-            <div className={clsx("px-2 py-1 h-full flex flex-col justify-center", isTiny ? "text-[8px] leading-tight" : "text-xs")}>
-                {!isTiny && (
-                    <div className="flex justify-between items-start">
-                        <span className="font-semibold truncate text-white/90 w-full">{task.title}</span>
-                    </div>
-                )}
-                {isTiny && (
-                    <span className="truncate text-white/90 w-full block">{task.title}</span>
-                )}
-
-                {!isTiny && (
-                    <div className="text-white/60 text-[10px] flex justify-between mt-auto">
-                        <span>{task.points} pts</span>
-                        {task.assignee && <span>{task.assignee}</span>}
-                    </div>
+            <div className={clsx(
+                "h-full flex flex-col justify-center",
+                isTiny ? "px-1 py-0 items-center text-center" : "px-2 py-1"
+            )}>
+                {isTiny ? (
+                    // TINY MODE: Just title, centered vertically
+                    <span className="truncate text-white/90 w-full block text-[10px] font-medium leading-none">
+                        {task.title}
+                    </span>
+                ) : (
+                    // NORMAL MODE
+                    <>
+                        <div className="flex justify-between items-start">
+                            <span className="font-semibold truncate text-white/90 w-full text-xs">{task.title}</span>
+                        </div>
+                        <div className="text-white/60 text-[10px] flex justify-between mt-auto">
+                            <span>{task.points} pts</span>
+                            {task.assignee && <span>{task.assignee}</span>}
+                        </div>
+                    </>
                 )}
             </div>
 

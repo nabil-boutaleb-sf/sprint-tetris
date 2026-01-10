@@ -69,7 +69,7 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
                             <div>
                                 <p className="text-xs text-slate-500">Sprints</p>
                                 <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    {task.sprints.length > 0 ? task.sprints.join(', ') : 'Backlog'}
+                                    {task.sprint ? task.sprint : 'Backlog'}
                                 </p>
                             </div>
                         </div>
