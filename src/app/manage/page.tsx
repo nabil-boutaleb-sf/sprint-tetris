@@ -3,12 +3,12 @@
 import { useBoardStore } from '@/store/boardStore';
 import { fetchAsanaData } from '@/lib/asana';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import ThemeToggle from '@/components/ThemeToggle';
 
 export default function ManagePage() {
-    const { sprints, tasks, addSprint, deleteSprint, updateSprintCapacity, updateAssigneeCapacity, importData, isDemoMode } = useBoardStore();
+    const { sprints, tasks, addSprint, deleteSprint, updateSprintCapacity, updateAssigneeCapacity, importData, isDemoMode, setDemoMode } = useBoardStore();
 
     const allAssignees = Array.from(new Set(tasks.map(t => t.assignee).filter(Boolean))) as string[];
 
@@ -32,7 +32,17 @@ export default function ManagePage() {
         if (storedGid) setProjectGid(storedGid);
         if (storedSprintField) setSprintFieldId(storedSprintField);
         if (storedPointsField) setPointsFieldId(storedPointsField);
+        if (storedPointsField) setPointsFieldId(storedPointsField);
     }, []);
+
+    // Auto-ingest effect
+    const hasAttemptedAutoIngest = useRef(false);
+    useEffect(() => {
+        if (!hasAttemptedAutoIngest.current && asanaToken && projectGid && isDemoMode) {
+            hasAttemptedAutoIngest.current = true;
+            handleIngest();
+        }
+    }, [asanaToken, projectGid]);
 
     // Save to localStorage on change
     useEffect(() => { localStorage.setItem('asana_token', asanaToken); }, [asanaToken]);
@@ -93,6 +103,17 @@ export default function ManagePage() {
                     </div>
                     <div className="flex items-center gap-3">
                         <ThemeToggle />
+                        <button
+                            onClick={() => setDemoMode(!isDemoMode)}
+                            className={clsx(
+                                "text-xs font-bold uppercase tracking-wider px-3 py-2 rounded-lg border transition-all",
+                                isDemoMode
+                                    ? "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800"
+                                    : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50 dark:bg-zinc-800 dark:text-slate-400 dark:border-zinc-700"
+                            )}
+                        >
+                            {isDemoMode ? 'Demo Active' : 'Enable Demo'}
+                        </button>
                         <Link
                             href="/"
                             className="px-5 py-2.5 bg-white dark:bg-zinc-800 hover:bg-slate-100 rounded-lg text-sm font-bold border border-slate-200 dark:border-zinc-700 shadow-sm transition-colors"

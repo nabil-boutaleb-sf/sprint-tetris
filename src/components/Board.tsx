@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { AssigneeLegend } from './AssigneeLegend';
 
 export default function Board() {
-    const { tasks, sprints, moveTask, filterAssignee, setFilterAssignee } = useBoardStore();
+    const { tasks, sprints, moveTask, filterAssignee, setFilterAssignee, isDemoMode } = useBoardStore();
 
     // Drag Sensors
     const sensors = useSensors(
@@ -98,9 +98,16 @@ export default function Board() {
                                 🧩
                             </div>
                             <div>
-                                <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                                    Sprint Tetris
-                                </h1>
+                                <div className="flex items-center gap-3">
+                                    <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                                        Sprint Tetris
+                                    </h1>
+                                    {isDemoMode && (
+                                        <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border border-amber-200 dark:border-amber-800 self-center">
+                                            Demo
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <div className="flex gap-4 items-center">

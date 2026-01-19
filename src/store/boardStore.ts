@@ -11,6 +11,7 @@ interface BoardState {
 
     // Actions
     importData: (sprints: Sprint[], tasks: Task[]) => void;
+    setDemoMode: (isDemo: boolean) => void;
     toggleBacklog: () => void;
     setFilterAssignee: (assignee: string | null) => void;
     moveTask: (taskId: string, targetSprint: SprintName | null) => void;
@@ -28,6 +29,7 @@ export const useBoardStore = create<BoardState>((set) => ({
     isDemoMode: true,
 
     importData: (sprints, tasks) => set({ sprints, tasks, isDemoMode: false }),
+    setDemoMode: (isDemo) => set({ isDemoMode: isDemo }),
 
     toggleBacklog: () => set((state) => ({ isBacklogOpen: !state.isBacklogOpen })),
     setFilterAssignee: (filterAssignee) => set({ filterAssignee }),
