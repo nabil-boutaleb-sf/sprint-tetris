@@ -1,14 +1,11 @@
 import { useDroppable } from '@dnd-kit/core';
+import { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import { useBoardStore } from '@/store/boardStore';
 import { DraggableTask } from './DraggableTask';
 import { Task } from '@/types';
 
 
-// Utility to calculate capacity height (simple scaling)
-const calculateCapacityHeight = (capacity: number) => {
-    return capacity * 20; // 20px per point
-};
 
 interface DroppableSprintColumnProps {
     name: string;
@@ -26,8 +23,27 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
     const sprint = sprints.find(s => s.name === name);
     const capacity = sprint?.capacity || 20;
 
+    // Local state for smooth editing
+    const [localCapacity, setLocalCapacity] = useState(capacity.toString());
+
+    useEffect(() => {
+        setLocalCapacity(capacity.toString());
+    }, [capacity]);
+
+    const handleCommit = () => {
+        let val = parseInt(localCapacity, 10);
+        if (isNaN(val) || val < 0) val = 0;
+        updateSprintCapacity(name, val);
+        setLocalCapacity(val.toString());
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            (e.target as HTMLInputElement).blur();
+        }
+    };
+
     const totalPoints = tasks.reduce((sum, t) => sum + t.points, 0);
-    const capacityHeight = calculateCapacityHeight(capacity);
     const fillPercentage = (totalPoints / capacity) * 100;
 
     // Dynamic styles
@@ -52,9 +68,12 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
                 <h3 className="text-base font-bold text-slate-900 dark:text-gray-100">{name}</h3>
                 <div className="flex gap-2 items-center bg-white dark:bg-zinc-800 rounded-lg px-2 py-1 border border-slate-200 dark:border-zinc-700 shadow-sm">
                     <input
-                        type="number"
-                        value={capacity}
-                        onChange={(e) => updateSprintCapacity(name, Number(e.target.value))}
+                        type="text"
+                        inputMode="numeric"
+                        value={localCapacity}
+                        onChange={(e) => setLocalCapacity(e.target.value)}
+                        onBlur={handleCommit}
+                        onKeyDown={handleKeyDown}
                         className="w-10 text-sm bg-transparent text-right text-slate-700 dark:text-gray-200 focus:text-black dark:focus:text-white outline-none font-mono font-bold"
                     />
                     <span className="text-xs text-slate-400">/</span>
@@ -69,31 +88,24 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
                 </div>
             </div>
 
-            {/* The Tube Container */}
+            {/* The Dynamic Container */}
             <div
                 className={clsx(
-                    "relative rounded-xl border-2 transition-colors duration-200 p-1 flex flex-col justify-end overflow-hidden shadow-sm",
+                    "relative rounded-xl border-2 transition-colors duration-200 p-1 flex flex-col min-h-[150px] shadow-sm",
                     bgColor,
                     borderColor
                 )}
-                style={{ height: `${capacityHeight + 60}px`, transition: 'height 0.3s ease-out' }} // Standard CSS transition
             >
-                {/* Progress Background - Pure CSS */}
-                <div
-                    className={clsx(
-                        "absolute bottom-0 left-0 right-0 opacity-10 pointer-events-none z-0 transition-all duration-300 ease-out", // CSS Transition
-                        fillPercentage > 100 ? "bg-red-500" :
-                            fillPercentage >= 100 ? "bg-green-500" :
-                                "bg-slate-400 dark:bg-slate-500"
-                    )}
-                    style={{ height: `${Math.min(fillPercentage, 100)}%` }}
-                />
-
                 {/* Tasks */}
-                <div className="flex flex-col gap-1 z-10 w-full overflow-y-auto overflow-x-hidden scrollbar-none pb-1 h-full">
+                <div className="flex flex-col gap-1 w-full pb-1 h-full">
                     {tasks.map(task => (
                         <DraggableTask key={task.id} task={task} onTaskClick={() => onTaskClick(task)} />
                     ))}
+                    {tasks.length === 0 && (
+                        <div className="flex-1 flex items-center justify-center text-slate-300 dark:text-zinc-700 text-sm font-medium italic p-4">
+                            Drop tasks here
+                        </div>
+                    )}
                 </div>
 
             </div>

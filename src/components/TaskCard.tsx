@@ -1,5 +1,5 @@
 import { Task } from '@/types';
-import { calculateTaskHeight, getAssigneeColorClass } from '@/lib/uiUtils';
+import { calculateVisualHeight, getAssigneeColorClass } from '@/lib/uiUtils';
 import clsx from 'clsx';
 
 interface TaskCardProps {
@@ -8,7 +8,7 @@ interface TaskCardProps {
 }
 
 export const TaskCard = ({ task, onClick }: TaskCardProps) => {
-    const height = calculateTaskHeight(task.points);
+    const height = calculateVisualHeight(task.points);
 
     // "Tiny Mode" for anything less than 24px (roughly < 0.6 pts)
     const isTiny = height < 24;

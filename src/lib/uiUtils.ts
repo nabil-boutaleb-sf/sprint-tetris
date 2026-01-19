@@ -1,12 +1,10 @@
-export const POINTS_TO_PIXELS = 40; // 1 point = 40px (Strict Mode)
-
-export const calculateTaskHeight = (points: number) => {
-    return Math.max((points * POINTS_TO_PIXELS) - 1, 10); // Subtract 1px for gap
+// Non-linear scaling: Base size + incremental size
+// This ensures small tasks are readable, and large tasks don't take up the whole screen.
+export const calculateVisualHeight = (points: number) => {
+    const base = 28; // Minimum usable height for title
+    const scale = 8; // Pixels per point
+    return base + (points * scale);
 };
-
-export const calculateCapacityHeight = (capacity: number) => {
-    return capacity * POINTS_TO_PIXELS;
-}
 
 const ASSIGNEE_COLORS = [
     'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
