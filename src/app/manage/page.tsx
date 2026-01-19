@@ -3,12 +3,16 @@
 import { useBoardStore } from '@/store/boardStore';
 import { fetchAsanaData } from '@/lib/asana';
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import ThemeToggle from '@/components/ThemeToggle';
+import { useAutoIngest } from '@/hooks/useAutoIngest';
 
 export default function ManagePage() {
     const { sprints, tasks, addSprint, deleteSprint, updateSprintCapacity, updateAssigneeCapacity, importData, isDemoMode, setDemoMode } = useBoardStore();
+
+    // Call auto-ingest hook
+    useAutoIngest();
 
     const allAssignees = Array.from(new Set(tasks.map(t => t.assignee).filter(Boolean))) as string[];
 
@@ -32,17 +36,9 @@ export default function ManagePage() {
         if (storedGid) setProjectGid(storedGid);
         if (storedSprintField) setSprintFieldId(storedSprintField);
         if (storedPointsField) setPointsFieldId(storedPointsField);
-        if (storedPointsField) setPointsFieldId(storedPointsField);
     }, []);
 
-    // Auto-ingest effect
-    const hasAttemptedAutoIngest = useRef(false);
-    useEffect(() => {
-        if (!hasAttemptedAutoIngest.current && asanaToken && projectGid && isDemoMode) {
-            hasAttemptedAutoIngest.current = true;
-            handleIngest();
-        }
-    }, [asanaToken, projectGid]);
+    // Save to localStorage on change
 
     // Save to localStorage on change
     useEffect(() => { localStorage.setItem('asana_token', asanaToken); }, [asanaToken]);

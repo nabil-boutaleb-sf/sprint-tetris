@@ -11,9 +11,11 @@ import { Moon, Sun } from 'lucide-react';
 import { TaskDetailModal } from './TaskDetailModal';
 import Link from 'next/link';
 import { AssigneeLegend } from './AssigneeLegend';
+import { useAutoIngest } from '@/hooks/useAutoIngest';
 
 export default function Board() {
     const { tasks, sprints, moveTask, filterAssignee, setFilterAssignee, isDemoMode } = useBoardStore();
+    useAutoIngest();
 
     // Drag Sensors
     const sensors = useSensors(
