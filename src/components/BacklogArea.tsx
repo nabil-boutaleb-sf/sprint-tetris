@@ -51,7 +51,7 @@ export const BacklogArea = ({ tasks, onTaskClick }: BacklogAreaProps) => {
             >
                 {tasks.map(task => (
                     <div key={task.id} className="relative">
-                        <DraggableTask task={task} />
+                        <DraggableTask task={task} onTaskClick={() => onTaskClick(task)} />
                     </div>
                 ))}
             </div>

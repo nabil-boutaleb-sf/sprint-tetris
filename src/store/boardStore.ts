@@ -15,6 +15,7 @@ interface BoardState {
     toggleBacklog: () => void;
     setFilterAssignee: (assignee: string | null) => void;
     moveTask: (taskId: string, targetSprint: SprintName | null) => void;
+    updateTask: (taskId: string, updates: Partial<Task>) => void;
     updateSprintCapacity: (sprintName: string, capacity: number) => void;
     updateAssigneeCapacity: (sprintName: string, assignee: string, capacity: number) => void;
     addSprint: (name: string, capacity: number) => void;
@@ -45,6 +46,10 @@ export const useBoardStore = create<BoardState>((set) => ({
             })
         };
     }),
+
+    updateTask: (taskId, updates) => set((state) => ({
+        tasks: state.tasks.map(t => t.id === taskId ? { ...t, ...updates } : t)
+    })),
 
     updateSprintCapacity: (sprintName, capacity) => set((state) => ({
         sprints: state.sprints.map(s =>
