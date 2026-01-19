@@ -77,7 +77,7 @@ export async function fetchAsanaData(
 
         // --- Points ---
         const pointsField = getCustomField(t, pointsFieldId, 'datapoints');
-        const points = pointsField ? (pointsField.number_value || 0.5) : 0.5;
+        const points = pointsField ? (pointsField.number_value || 5) : 5; // Default to 5 points per user request
 
         // --- Sprint ---
         const sprintField = getCustomField(t, sprintFieldId, 'Sprints');

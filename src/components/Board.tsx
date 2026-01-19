@@ -30,12 +30,22 @@ export default function Board() {
     const [theme, setTheme] = useState<'dark' | 'light'>('dark');
     const [selectedTask, setSelectedTask] = useState<Task | null>(null); // For Modal
 
+    // Sync state with DOM on mount (to respect layout.tsx script)
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const isDark = document.documentElement.classList.contains('dark');
+            setTheme(isDark ? 'dark' : 'light');
+        }
+    }, []);
+
     // Theme Toggle Logic
     useEffect(() => {
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
         } else {
             document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
         }
     }, [theme]);
 

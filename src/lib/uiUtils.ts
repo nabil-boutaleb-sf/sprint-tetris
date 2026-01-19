@@ -1,7 +1,7 @@
 // Non-linear scaling: Base size + incremental size
 // This ensures small tasks are readable, and large tasks don't take up the whole screen.
 export const calculateVisualHeight = (points: number) => {
-    const base = 28; // Minimum usable height for title
+    const base = 16; // Smaller base size (0.5pts -> 20px)
     const scale = 8; // Pixels per point
     return base + (points * scale);
 };

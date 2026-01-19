@@ -4,8 +4,7 @@ import clsx from 'clsx';
 import { useBoardStore } from '@/store/boardStore';
 import { DraggableTask } from './DraggableTask';
 import { Task } from '@/types';
-
-
+import { calculateVisualHeight } from '@/lib/uiUtils';
 
 interface DroppableSprintColumnProps {
     name: string;
@@ -45,6 +44,12 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
 
     const totalPoints = tasks.reduce((sum, t) => sum + t.points, 0);
     const fillPercentage = (totalPoints / capacity) * 100;
+
+    // Heuristic: Set min-height assuming standard 5-point tasks
+    // If capacity is 20, we expect 4 tasks of 5 points.
+    // Height = (20 / 5) * HeightOf(5)
+    // 5 points height = 16 + 5*8 = 56px
+    const idealMinHeight = (capacity / 5) * calculateVisualHeight(5);
 
     // Dynamic styles
     let borderColor = 'border-slate-300 dark:border-zinc-700';
@@ -95,6 +100,7 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
                     bgColor,
                     borderColor
                 )}
+                style={{ minHeight: `${Math.max(idealMinHeight, 100)}px`, transition: 'min-height 0.3s ease-out' }}
             >
                 {/* Tasks */}
                 <div className="flex flex-col gap-1 w-full pb-1 h-full">
