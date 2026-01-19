@@ -112,14 +112,95 @@ export async function fetchAsanaData(
         }
     });
 
-    // Sort sprints naturally (assuming numerical/chronological naming)
-    let sortedSprints = Array.from(sprintMap.values()).sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { numeric: true })
-    );
+    // Helper to parse dates from sprint name: "Sprint 56 [12/22-1/2]"
+    const parseSprintDates = (name: string): { start: Date, end: Date } | null => {
+        const match = name.match(/\[(\d{1,2})\/(\d{1,2})-(\d{1,2})\/(\d{1,2})\]/);
+        if (!match) return null;
 
-    // Filter to keep only the requested number of sprints (assuming we want the LATEST ones)
-    if (sprintCount > 0 && sortedSprints.length > sprintCount) {
-        sortedSprints = sortedSprints.slice(-sprintCount);
+        const [_, m1, d1, m2, d2] = match;
+        const now = new Date();
+        const currentYear = now.getFullYear();
+
+        // Construct dates (assume current year first)
+        let start = new Date(currentYear, parseInt(m1) - 1, parseInt(d1));
+        let end = new Date(currentYear, parseInt(m2) - 1, parseInt(d2));
+
+        // Handle Year Rollover (e.g. Dec -> Jan)
+        // If end month is earlier than start month, end date is next year
+        if (end < start) {
+            end.setFullYear(currentYear + 1);
+        }
+
+        // Adjust for "Proximity to Today" if needed?
+        // Simple heuristic: If the sprint start date is more than 6 months away, it might be wrong year assumption.
+        // But simpler: Sprints are usually recent.
+        // Let's just trust the year logic for now, or maybe check if start is effectively > 11 months ago, bump it?
+        // Actually, if today is Jan 2026, and we see 12/22, that's likely Dec 2025.
+        // Start with simple Year logic:
+        // If start month is > current month + 6, it was probably last year.
+        // If start month is < current month - 6, it is probably next year (unlikely for "sprint history").
+
+        // Better Heuristic: Check relative to NOW.
+        // If the resulting date is > 180 days in future, subtract 1 year.
+        // If the resulting date is < -180 days in past, add 1 year.
+
+        const adjustYear = (d: Date) => {
+            const diff = d.getTime() - now.getTime();
+            const daysDiff = diff / (1000 * 3600 * 24);
+            if (daysDiff > 180) d.setFullYear(d.getFullYear() - 1);
+            else if (daysDiff < -180) d.setFullYear(d.getFullYear() + 1);
+            return d;
+        };
+
+        start = adjustYear(start);
+        end = adjustYear(end);
+
+        // Re-check end year rollover after adjustment
+        if (end < start) end.setFullYear(start.getFullYear() + 1);
+
+        return { start, end };
+    };
+
+    // Sort sprints naturally
+    let sortedSprints = Array.from(sprintMap.values()).map(s => ({
+        ...s,
+        dates: parseSprintDates(s.name)
+    })).sort((a, b) => {
+        // Sort by Date if available, else Name
+        if (a.dates && b.dates) return a.dates.start.getTime() - b.dates.start.getTime();
+        return a.name.localeCompare(b.name, undefined, { numeric: true });
+    });
+
+    // Smart Selection: Find "Current" and Next N
+    if (sprintCount > 0 && sortedSprints.length > 0) {
+        const today = new Date();
+        // Remove time component for accurate comparison
+        today.setHours(0, 0, 0, 0);
+
+        // Find index of the "Active" sprint (Start <= Today <= End)
+        // OR the first upcoming sprint (Start > Today)
+        let startIndex = sortedSprints.findIndex(s => {
+            if (!s.dates) return false;
+            // Active?
+            if (s.dates.start <= today && s.dates.end >= today) return true;
+            // Upcoming? (We want the first one that is upcoming if no active one exists)
+            // But findIndex stops at first true. 
+            // So if we iterate, the first one where end >= today is a good candidate?
+            // Actually: We want the first sprint where EndDate >= Today.
+            // This covers "Active" (End >= Today) and "Future" (End > Start > Today).
+            // It filters out "Past" (End < Today).
+            return s.dates.end >= today;
+        });
+
+        if (startIndex !== -1) {
+            // Found a starting point! Take this and the next N-1
+            // But wait, if we found "Sprint 56" (Active), we want Sprint 56, 57, 58...
+            sortedSprints = sortedSprints.slice(startIndex, startIndex + sprintCount);
+        } else {
+            // No current/future dates found? Or parsing failed?
+            // Fallback: Take the Last N (as before)
+            sortedSprints = sortedSprints.slice(-sprintCount);
+        }
     }
 
     // Create Set of allowed sprint names
