@@ -1,0 +1,17 @@
+services:
+  sprint-tetris:
+    container_name: sprint-tetris
+    build: .
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - homepage_default
+
+networks:
+  homepage_default:
+    external: true

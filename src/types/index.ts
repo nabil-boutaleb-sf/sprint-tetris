@@ -16,3 +16,9 @@ export interface SprintColumnData {
     tasks: Task[];
     totalPoints: number;
 }
+
+export interface Sprint {
+    name: string;
+    capacity: number;
+    assigneeCapacities: Record<string, number>;
+}
