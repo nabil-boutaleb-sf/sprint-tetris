@@ -1,5 +1,5 @@
 import { Task } from '@/types';
-import { calculateTaskHeight } from '@/lib/uiUtils';
+import { calculateTaskHeight, getAssigneeColorClass } from '@/lib/uiUtils';
 import clsx from 'clsx';
 
 interface TaskCardProps {
@@ -13,6 +13,9 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
     // "Tiny Mode" for anything less than 24px (roughly < 0.6 pts)
     const isTiny = height < 24;
 
+    // Determine color: Manual override > Assignee color > Default slate
+    const colorClass = task.color || (task.assignee ? getAssigneeColorClass(task.assignee) : 'bg-slate-700');
+
     return (
         <div
             onClick={onClick}
@@ -21,7 +24,7 @@ export const TaskCard = ({ task, onClick }: TaskCardProps) => {
             data-points={task.points}
             className={clsx(
                 'w-full rounded-md relative overflow-hidden transition-all duration-200 hover:brightness-110 shadow-sm border border-white/5',
-                task.color || 'bg-slate-700',
+                colorClass,
                 'group cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-white/20',
                 // Remove mb-1, gap handles spacing now.
             )}
