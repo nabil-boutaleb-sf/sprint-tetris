@@ -33,7 +33,8 @@ describe('TaskDetailModal', () => {
         status: 'To Do',
         assignee: 'Alice',
         sprint: 'Sprint 1',
-        color: 'bg-red-500'
+        color: 'bg-red-500',
+        description: '<p>Test Description</p>'
     };
 
     it('renders task details correctly', () => {
@@ -43,6 +44,7 @@ describe('TaskDetailModal', () => {
         expect(screen.getByDisplayValue('5')).toBeInTheDocument();
         expect(screen.getByDisplayValue('Alice')).toBeInTheDocument();
         expect(screen.getByDisplayValue('Sprint 1')).toBeInTheDocument();
+        expect(screen.getByText('Test Description')).toBeInTheDocument();
     });
 
     it('calls updateTask with changes when saved', () => {

@@ -8,6 +8,7 @@ export interface Task {
     status: 'To Do' | 'In Progress' | 'Done' | 'Backlog';
     assignee?: string;
     color?: string; // Optional visual override
+    description?: string; // HTML description from Asana
 }
 
 export interface SprintColumnData {

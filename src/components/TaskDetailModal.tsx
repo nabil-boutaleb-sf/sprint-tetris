@@ -152,10 +152,17 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
                         <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
                             <Tag size={16} /> Description
                         </h3>
-                        <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-                            <p className="italic text-slate-400">
-                                Description editing is not yet supported.
-                            </p>
+                        <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 text-sm leading-relaxed overflow-x-auto">
+                            {task.description ? (
+                                <div
+                                    className="prose dark:prose-invert prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0"
+                                    dangerouslySetInnerHTML={{ __html: task.description }}
+                                />
+                            ) : (
+                                <p className="italic text-slate-400">
+                                    No description provided.
+                                </p>
+                            )}
                         </div>
                     </div>
 
