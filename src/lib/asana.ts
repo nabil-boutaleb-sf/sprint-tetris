@@ -25,7 +25,7 @@ export async function fetchAsanaData(
     projectGid: string,
     sprintFieldId: string | null, // If null, we'll try to find "Sprints"
     pointsFieldId: string | null, // If null, we'll try to find "datapoints"
-    sprintCount: number = 3
+    sprintCount: number = 6
 ): Promise<{ sprints: Sprint[]; tasks: Task[] }> {
 
     // 1. Fetch Tasks with relevant fields

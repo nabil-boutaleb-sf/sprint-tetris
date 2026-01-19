@@ -45,7 +45,7 @@ export default function ManagePage() {
     useEffect(() => { localStorage.setItem('asana_project_gid', projectGid); }, [projectGid]);
     useEffect(() => { localStorage.setItem('asana_sprint_field_id', sprintFieldId); }, [sprintFieldId]);
     useEffect(() => { localStorage.setItem('asana_points_field_id', pointsFieldId); }, [pointsFieldId]);
-    const [sprintCount, setSprintCount] = useState(3);
+    const [sprintCount, setSprintCount] = useState(6);
     const [isIngesting, setIsIngesting] = useState(false);
     const [ingestionError, setIngestionError] = useState<string | null>(null);
     const [ingestionSuccess, setIngestionSuccess] = useState(false);

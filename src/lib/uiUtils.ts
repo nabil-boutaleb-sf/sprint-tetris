@@ -7,10 +7,14 @@ export const calculateVisualHeight = (points: number) => {
 };
 
 const ASSIGNEE_COLORS = [
-    'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
-    'bg-lime-500', 'bg-green-500', 'bg-emerald-500', 'bg-teal-500',
-    'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500',
-    'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500', 'bg-rose-500'
+    'bg-blue-500',    // 1. Classic Blue
+    'bg-emerald-500', // 2. Nice Green
+    'bg-violet-500',  // 3. Deep Purple
+    'bg-rose-500',    // 4. Soft Red
+    'bg-amber-500',   // 5. Warm Orange/Yellow
+    'bg-cyan-500',    // 6. Bright Teal-ish
+    'bg-fuchsia-500', // 7. Pinkish Purple
+    'bg-lime-600',    // 8. Distinct Green-Yellow (600 for better contrast)
 ];
 
 export const getAssigneeColorClass = (name: string): string => {
