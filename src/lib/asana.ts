@@ -107,7 +107,7 @@ export async function fetchAsanaData(
         // Collect Sprints
         if (sprintName) {
             if (!sprintMap.has(sprintName)) {
-                sprintMap.set(sprintName, { name: sprintName, capacity: 20 }); // Default capacity
+                sprintMap.set(sprintName, { name: sprintName, capacity: 50 }); // Default capacity
             }
         }
     });

@@ -24,7 +24,7 @@ export const MOCK_TASKS: Task[] = [
 ];
 
 export const SPRINTS = [
-    { name: 'Sprint 24.1', capacity: 20 },
-    { name: 'Sprint 24.2', capacity: 20 },
-    { name: 'Sprint 24.3', capacity: 20 },
+    { name: 'Sprint 24.1', capacity: 50 },
+    { name: 'Sprint 24.2', capacity: 50 },
+    { name: 'Sprint 24.3', capacity: 50 },
 ];
