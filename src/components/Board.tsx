@@ -106,8 +106,8 @@ export default function Board() {
                     {/* Header */}
                     <header className="px-8 py-5 flex justify-between items-center bg-white dark:bg-zinc-900 border-b-2 border-slate-100 dark:border-zinc-800 m-4 rounded-2xl shadow-sm shrink-0">
                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-2xl shadow-md">
-                                🧩
+                            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md">
+                                <img src="/logo.png" alt="Sprint Tetris Logo" className="w-full h-full object-cover" />
                             </div>
                             <div>
                                 <div className="flex items-center gap-3">

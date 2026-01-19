@@ -1,4 +1,5 @@
 import { Task, Sprint, SprintName } from '@/types';
+import { parseSprintDates } from './dateUtils';
 
 interface AsanaTask {
     gid: string;
@@ -111,55 +112,6 @@ export async function fetchAsanaData(
             }
         }
     });
-
-    // Helper to parse dates from sprint name: "Sprint 56 [12/22-1/2]"
-    const parseSprintDates = (name: string): { start: Date, end: Date } | null => {
-        const match = name.match(/\[(\d{1,2})\/(\d{1,2})-(\d{1,2})\/(\d{1,2})\]/);
-        if (!match) return null;
-
-        const [_, m1, d1, m2, d2] = match;
-        const now = new Date();
-        const currentYear = now.getFullYear();
-
-        // Construct dates (assume current year first)
-        let start = new Date(currentYear, parseInt(m1) - 1, parseInt(d1));
-        let end = new Date(currentYear, parseInt(m2) - 1, parseInt(d2));
-
-        // Handle Year Rollover (e.g. Dec -> Jan)
-        // If end month is earlier than start month, end date is next year
-        if (end < start) {
-            end.setFullYear(currentYear + 1);
-        }
-
-        // Adjust for "Proximity to Today" if needed?
-        // Simple heuristic: If the sprint start date is more than 6 months away, it might be wrong year assumption.
-        // But simpler: Sprints are usually recent.
-        // Let's just trust the year logic for now, or maybe check if start is effectively > 11 months ago, bump it?
-        // Actually, if today is Jan 2026, and we see 12/22, that's likely Dec 2025.
-        // Start with simple Year logic:
-        // If start month is > current month + 6, it was probably last year.
-        // If start month is < current month - 6, it is probably next year (unlikely for "sprint history").
-
-        // Better Heuristic: Check relative to NOW.
-        // If the resulting date is > 180 days in future, subtract 1 year.
-        // If the resulting date is < -180 days in past, add 1 year.
-
-        const adjustYear = (d: Date) => {
-            const diff = d.getTime() - now.getTime();
-            const daysDiff = diff / (1000 * 3600 * 24);
-            if (daysDiff > 180) d.setFullYear(d.getFullYear() - 1);
-            else if (daysDiff < -180) d.setFullYear(d.getFullYear() + 1);
-            return d;
-        };
-
-        start = adjustYear(start);
-        end = adjustYear(end);
-
-        // Re-check end year rollover after adjustment
-        if (end < start) end.setFullYear(start.getFullYear() + 1);
-
-        return { start, end };
-    };
 
     // Sort sprints naturally
     let sortedSprints = Array.from(sprintMap.values()).map(s => ({
