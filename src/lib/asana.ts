@@ -193,8 +193,15 @@ export async function fetchAsanaData(
         });
 
         if (startIndex !== -1) {
-            // Found a starting point! Take this and the next N-1
-            // But wait, if we found "Sprint 56" (Active), we want Sprint 56, 57, 58...
+            // Found a starting point! 
+            // UX Improvement: If we don't have enough future sprints to fill the requested count (6),
+            // backfill with previous sprints so the board doesn't look empty.
+            let endIndex = startIndex + sprintCount;
+            if (endIndex > sortedSprints.length) {
+                const deficit = endIndex - sortedSprints.length;
+                startIndex = Math.max(0, startIndex - deficit);
+            }
+
             sortedSprints = sortedSprints.slice(startIndex, startIndex + sprintCount);
         } else {
             // No current/future dates found? Or parsing failed?
