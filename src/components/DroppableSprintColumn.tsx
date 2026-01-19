@@ -20,7 +20,7 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
 
     const { sprints, updateSprintCapacity } = useBoardStore();
     const sprint = sprints.find(s => s.name === name);
-    const capacity = sprint?.capacity || 20;
+    const capacity = sprint?.capacity || 50;
 
     // Local state for smooth editing
     const [localCapacity, setLocalCapacity] = useState(capacity.toString());

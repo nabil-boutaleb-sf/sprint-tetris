@@ -17,7 +17,7 @@ export default function ManagePage() {
     const allAssignees = Array.from(new Set(tasks.map(t => t.assignee).filter(Boolean))) as string[];
 
     const [newSprintName, setNewSprintName] = useState('');
-    const [newSprintCapacity, setNewSprintCapacity] = useState(20);
+    const [newSprintCapacity, setNewSprintCapacity] = useState(50);
 
     // Asana Ingestion State
     const [asanaToken, setAsanaToken] = useState('');
@@ -76,7 +76,7 @@ export default function ManagePage() {
         if (newSprintName.trim()) {
             addSprint(newSprintName.trim(), newSprintCapacity);
             setNewSprintName('');
-            setNewSprintCapacity(20);
+            setNewSprintCapacity(50);
         }
     };
 
