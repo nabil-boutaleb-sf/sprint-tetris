@@ -86,6 +86,17 @@ describe('boardStore', () => {
         expect(result.current.pendingChanges[0].newValue).toBe('New Title');
     });
 
+    it('should NOT log changes if values are identical', () => {
+        const { result } = renderHook(() => useBoardStore());
+
+        act(() => {
+            // "Task 1" is already 5 points and status "To Do"
+            result.current.updateTask('1', { points: 5, status: 'To Do' });
+        });
+
+        expect(result.current.pendingChanges).toHaveLength(0);
+    });
+
     it('should clear pending changes', () => {
         const { result } = renderHook(() => useBoardStore());
 
