@@ -69,7 +69,7 @@ export const useBoardStore = create<BoardState>()(
                 };
 
                 return {
-                    pendingChanges: [...state.pendingChanges, change],
+                    pendingChanges: [...(state.pendingChanges || []), change],
                     tasks: state.tasks.map((t) => {
                         if (t.id !== taskId) return t;
                         if (!targetSprint) {
@@ -95,7 +95,7 @@ export const useBoardStore = create<BoardState>()(
                 }));
 
                 return {
-                    pendingChanges: [...state.pendingChanges, ...newChanges],
+                    pendingChanges: [...(state.pendingChanges || []), ...newChanges],
                     tasks: state.tasks.map(t => t.id === taskId ? { ...t, ...updates } : t)
                 };
             }),
