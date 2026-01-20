@@ -1,0 +1,75 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #fdfaf6;
+  /* Warm off-white */
+  --foreground: #1e1e1e;
+
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+}
+
+.dark {
+  --background: #18181b;
+  /* Zinc 900 */
+  --foreground: #f4f4f5;
+
+  --card-bg: #27272a;
+  /* Zinc 800 */
+  --card-border: #3f3f46;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+/* Fizzy Utility */
+.fizzy-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 0.75rem;
+}
+
+/* No Glass - Just clean lines */
+.glass {
+  /* Mapping legacy class to avoid breakage, but simpler */
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+}
+
+/* Custom Scrollbar for horizontal areas */
+::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
