@@ -51,6 +51,14 @@ describe('TaskDetailModal', () => {
         expect(link).toHaveAttribute('href', 'https://app.asana.com/0/123/456');
     });
 
+    it('does not render Asana link when permalink_url is missing', () => {
+        const taskWithoutLink = { ...mockTask, permalink_url: undefined };
+        render(<TaskDetailModal task={taskWithoutLink} onClose={jest.fn()} />);
+
+        const link = screen.queryByTitle('Open in Asana');
+        expect(link).toBeNull();
+    });
+
     it('renders fallback text when description is missing', () => {
         const taskWithoutDesc = { ...mockTask, description: undefined };
         render(<TaskDetailModal task={taskWithoutDesc} onClose={jest.fn()} />);
