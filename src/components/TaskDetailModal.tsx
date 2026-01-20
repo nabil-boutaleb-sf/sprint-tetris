@@ -160,7 +160,7 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
                                 />
                             ) : (
                                 <p className="italic text-slate-400">
-                                    No description provided.
+                                    Description editing is not yet supported.
                                 </p>
                             )}
                         </div>

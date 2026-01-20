@@ -47,6 +47,13 @@ describe('TaskDetailModal', () => {
         expect(screen.getByText('Test Description')).toBeInTheDocument();
     });
 
+    it('renders fallback text when description is missing', () => {
+        const taskWithoutDesc = { ...mockTask, description: undefined };
+        render(<TaskDetailModal task={taskWithoutDesc} onClose={jest.fn()} />);
+
+        expect(screen.getByText('Description editing is not yet supported.')).toBeInTheDocument();
+    });
+
     it('calls updateTask with changes when saved', () => {
         const onClose = jest.fn();
         render(<TaskDetailModal task={mockTask} onClose={onClose} />);
