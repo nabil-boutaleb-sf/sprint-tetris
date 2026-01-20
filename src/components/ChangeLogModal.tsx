@@ -65,12 +65,20 @@ export const ChangeLogModal = ({ onClose }: ChangeLogModalProps) => {
                             {pendingChanges.slice().reverse().map((change) => (
                                 <div key={change.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                     <div className="flex justify-between items-start mb-1">
-                                        <h3 className="font-semibold text-slate-700 dark:text-slate-200 text-sm">
-                                            {change.taskTitle || 'Unknown Task'}
-                                        </h3>
-                                        <span className="text-xs text-slate-400 font-mono">
-                                            {new Date(change.timestamp).toLocaleTimeString()}
-                                        </span>
+                                        <div className="flex-1">
+                                            <h3 className="font-semibold text-slate-700 dark:text-slate-200 text-sm">
+                                                {change.taskTitle || 'Unknown Task'}
+                                            </h3>
+                                            <span className="text-xs text-slate-400 font-mono">
+                                                {new Date(change.timestamp).toLocaleTimeString()}
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={() => useBoardStore.getState().undoChange(change.id)}
+                                            className="text-xs font-medium text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded transition-colors"
+                                        >
+                                            Undo
+                                        </button>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                                         <span className="uppercase text-[10px] font-bold tracking-wider bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">

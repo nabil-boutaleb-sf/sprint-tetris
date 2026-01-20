@@ -36,6 +36,7 @@ interface BoardState {
     updateAssigneeCapacity: (sprintName: string, assignee: string, capacity: number) => void;
     addSprint: (name: string, capacity: number) => void;
     deleteSprint: (name: string) => void;
+    undoChange: (changeId: string) => void;
     clearPendingChanges: () => void;
 }
 
@@ -97,6 +98,9 @@ export const useBoardStore = create<BoardState>()(
                 const newChanges: PendingChange[] = [];
 
                 Object.keys(updates).forEach(key => {
+                    // Ignore color changes (ui only)
+                    if (key === 'color') return;
+
                     const k = key as keyof Task;
                     const oldValue = task[k];
                     const newValue = updates[k];
@@ -124,6 +128,35 @@ export const useBoardStore = create<BoardState>()(
                 return {
                     pendingChanges: [...(state.pendingChanges || []), ...newChanges],
                     tasks: state.tasks.map(t => t.id === taskId ? { ...t, ...updates } : t)
+                };
+            }),
+
+            undoChange: (changeId) => set((state) => {
+                const change = state.pendingChanges.find(c => c.id === changeId);
+                if (!change) return state;
+
+                // Revert the change on the task
+                const revertedTasks = state.tasks.map(t => {
+                    if (t.id !== change.taskId) return t;
+                    // For sprint changes, we need to handle the backlog status logic if verified
+                    let update = { [change.field]: change.oldValue };
+
+                    // Special handling if reverting a sprint move
+                    if (change.field === 'sprint') {
+                        if (!change.oldValue) {
+                            update = { sprint: null, status: 'Backlog' };
+                        } else {
+                            update = { sprint: change.oldValue };
+                        }
+                    }
+
+                    return { ...t, ...update };
+                });
+
+                // Remove from pending changes
+                return {
+                    tasks: revertedTasks,
+                    pendingChanges: state.pendingChanges.filter(c => c.id !== changeId)
                 };
             }),
 

@@ -97,6 +97,40 @@ describe('boardStore', () => {
         expect(result.current.pendingChanges).toHaveLength(0);
     });
 
+    it('should NOT log changes to "color" field', () => {
+        const { result } = renderHook(() => useBoardStore());
+
+        act(() => {
+            result.current.updateTask('1', { color: 'bg-blue-500' });
+        });
+
+        // Should change state but NOT log it
+        expect(result.current.tasks[0].color).toBe('bg-blue-500');
+        expect(result.current.pendingChanges).toHaveLength(0);
+    });
+
+    it('should undo a change', () => {
+        const { result } = renderHook(() => useBoardStore());
+
+        // Make a change
+        act(() => {
+            result.current.updateTask('1', { points: 8 });
+        });
+
+        expect(result.current.tasks[0].points).toBe(8);
+        expect(result.current.pendingChanges).toHaveLength(1);
+        const changeId = result.current.pendingChanges[0].id;
+
+        // Undo it
+        act(() => {
+            result.current.undoChange(changeId);
+        });
+
+        // Checks
+        expect(result.current.tasks[0].points).toBe(5); // Back to original
+        expect(result.current.pendingChanges).toHaveLength(0); // Log cleared
+    });
+
     it('should clear pending changes', () => {
         const { result } = renderHook(() => useBoardStore());
 
