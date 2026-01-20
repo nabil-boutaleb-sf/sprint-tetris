@@ -18,21 +18,32 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
         data: { type: 'sprint', name },
     });
 
-    const { sprints, updateSprintCapacity } = useBoardStore();
+    const { sprints, updateSprintCapacity, updateAssigneeCapacity, filterAssignee } = useBoardStore();
     const sprint = sprints.find(s => s.name === name);
-    const capacity = sprint?.capacity || 50;
+
+    // Logic: If filter is on, use specific cap. If specific cap is undefined, fallback to sprint capacity
+    const assigneeCapCallback = sprint?.assigneeCapacities?.[filterAssignee || ''];
+    const effectiveCapacity = filterAssignee
+        ? (assigneeCapCallback !== undefined ? assigneeCapCallback : sprint?.capacity || 50)
+        : (sprint?.capacity || 50);
 
     // Local state for smooth editing
-    const [localCapacity, setLocalCapacity] = useState(capacity.toString());
+    const [localCapacity, setLocalCapacity] = useState(effectiveCapacity.toString());
 
+    // Sync local state when capacity changes (store update or filter switch)
     useEffect(() => {
-        setLocalCapacity(capacity.toString());
-    }, [capacity]);
+        setLocalCapacity(effectiveCapacity.toString());
+    }, [effectiveCapacity, filterAssignee]);
 
     const handleCommit = () => {
-        let val = parseInt(localCapacity, 10);
+        let val = parseFloat(localCapacity);
         if (isNaN(val) || val < 0) val = 0;
-        updateSprintCapacity(name, val);
+
+        if (filterAssignee) {
+            updateAssigneeCapacity(name, filterAssignee, val);
+        } else {
+            updateSprintCapacity(name, val);
+        }
         setLocalCapacity(val.toString());
     };
 
@@ -46,14 +57,12 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
     const qaBuffer = tasks.length * 0.5;
     const effectiveLoad = totalPoints + qaBuffer;
 
-    // We use effectiveLoad for the capacity bar
-    const fillPercentage = (effectiveLoad / capacity) * 100;
+    const fillPercentage = (effectiveLoad / effectiveCapacity) * 100;
 
-    // Heuristic: Set min-height assuming standard 5-point tasks
-    // If capacity is 20, we expect 4 tasks of 5 points.
-    // Height = (20 / 5) * HeightOf(5)
-    // 5 points height = 16 + 5*8 = 56px
-    const idealMinHeight = (capacity / 5) * calculateVisualHeight(5);
+    // Visual Height scaling based on GLOBAL capacity to keep columns aligned?
+    // Or relative to this view? If I filter to "Alice", should the column shrink to her small capacity?
+    // Probably yes, "dynamic container".
+    const idealMinHeight = (effectiveCapacity / 5) * calculateVisualHeight(5);
 
     // Dynamic styles
     let borderColor = 'border-slate-300 dark:border-zinc-700';
@@ -72,11 +81,52 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
 
     const [showCapacityDetails, setShowCapacityDetails] = useState(false);
 
+    // Individual Overages Logic (Only when NOT filtered)
+    const renderIndividualOverages = () => {
+        if (filterAssignee) return null; // Logic is handled by main bar in filtered view
+
+        // Group by assignee
+        const loadsByAssignee: Record<string, number> = {};
+        tasks.forEach(t => {
+            if (!t.assignee) return;
+            if (!loadsByAssignee[t.assignee]) loadsByAssignee[t.assignee] = 0;
+            loadsByAssignee[t.assignee] += t.points + 0.5; // Include QA buffer
+        });
+
+        const overages = Object.entries(loadsByAssignee).filter(([assignee, load]) => {
+            const cap = sprint?.assigneeCapacities?.[assignee];
+            return cap !== undefined && load > cap;
+        });
+
+        if (overages.length === 0) return null;
+
+        return (
+            <div className="flex flex-col gap-1 mt-1">
+                {overages.map(([assignee, load]) => {
+                    const cap = sprint?.assigneeCapacities?.[assignee] || 0;
+                    return (
+                        <div key={assignee} className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 px-2 py-1 rounded border border-red-200 dark:border-red-900/30 flex justify-between items-center">
+                            <span>{assignee}</span>
+                            <span>{load}/{cap}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
     return (
         <div ref={setNodeRef} className="flex flex-col w-[280px] shrink-0 gap-3 relative">
             {/* Header */}
             <div className="flex justify-between items-center px-1">
-                <h3 className="text-base font-bold text-slate-900 dark:text-gray-100">{name}</h3>
+                <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-gray-100">{name}</h3>
+                    {filterAssignee && (
+                        <span className="text-[10px] uppercase font-bold text-purple-600 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">
+                            {filterAssignee}
+                        </span>
+                    )}
+                </div>
                 <div
                     className={clsx(
                         "flex gap-2 items-center bg-white dark:bg-zinc-800 rounded-lg px-2 py-1 border shadow-sm cursor-pointer relative",
@@ -91,7 +141,7 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
                         onChange={(e) => setLocalCapacity(e.target.value)}
                         onBlur={handleCommit}
                         onKeyDown={handleKeyDown}
-                        onClick={(e) => e.stopPropagation()} // Don't trigger modal when editing capacity
+                        onClick={(e) => e.stopPropagation()}
                         className="w-8 text-sm bg-transparent text-right text-slate-700 dark:text-gray-200 focus:text-black dark:focus:text-white outline-none font-mono font-bold"
                     />
                     <span className="text-xs text-slate-400">/</span>
@@ -123,7 +173,7 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
                                 </span>
                             </div>
                             <div className="text-[10px] text-slate-400 mt-2 italic text-center">
-                                (0.5 pts buffer per task)
+                                {filterAssignee ? `(Personal Capacity for ${filterAssignee})` : '(Team Capacity)'}
                             </div>
                         </div>
                     )}
@@ -153,12 +203,15 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
 
             </div>
 
-            {/* Over Limit Warning */}
+            {/* Warnings */}
             {fillPercentage > 100 && (
                 <div className="text-xs text-red-600 dark:text-red-300 font-bold bg-red-50 dark:bg-red-900/20 rounded-md py-1 border border-red-200 text-center animate-in fade-in slide-in-from-top-1 duration-200">
-                    ⚠️ Over limit by {(effectiveLoad - capacity).toFixed(1)} pts
+                    ⚠️ {filterAssignee ? 'Personal limit exceeded' : `Over limit by ${(effectiveLoad - effectiveCapacity).toFixed(1)} pts`}
                 </div>
             )}
+
+            {/* Individual Overages (Unfiltered View) */}
+            {renderIndividualOverages()}
         </div>
     );
 };
