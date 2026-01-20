@@ -12,6 +12,11 @@ export interface PendingChange {
     timestamp: number;
 }
 
+// Simple UUID generator that works in non-secure contexts (http)
+const generateId = () => {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+};
+
 interface BoardState {
     tasks: Task[];
     sprints: Sprint[];
@@ -54,12 +59,18 @@ export const useBoardStore = create<BoardState>()(
             setFilterAssignee: (filterAssignee) => set({ filterAssignee }),
 
             moveTask: (taskId, targetSprint) => set((state) => {
+                // Log for debugging
+                console.log(`[BoardStore] Moving task ${taskId} to ${targetSprint}`);
+
                 const task = state.tasks.find(t => t.id === taskId);
-                if (!task) return state;
+                if (!task) {
+                    console.error(`[BoardStore] Task ${taskId} not found!`);
+                    return state;
+                }
 
                 // Log the move
                 const change: PendingChange = {
-                    id: crypto.randomUUID(),
+                    id: generateId(),
                     taskId,
                     taskTitle: task.title,
                     field: 'sprint',
@@ -81,11 +92,16 @@ export const useBoardStore = create<BoardState>()(
             }),
 
             updateTask: (taskId, updates) => set((state) => {
+                console.log(`[BoardStore] Updating task ${taskId}`, updates);
+
                 const task = state.tasks.find(t => t.id === taskId);
-                if (!task) return state;
+                if (!task) {
+                    console.error(`[BoardStore] Task ${taskId} not found!`);
+                    return state;
+                }
 
                 const newChanges: PendingChange[] = Object.keys(updates).map(key => ({
-                    id: crypto.randomUUID(),
+                    id: generateId(),
                     taskId,
                     taskTitle: task.title,
                     field: key,

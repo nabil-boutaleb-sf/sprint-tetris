@@ -1,13 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { useBoardStore } from './boardStore';
 
-// Mock crypto.randomUUID
-Object.defineProperty(global, 'crypto', {
-    value: {
-        randomUUID: () => 'mock-uuid-' + Math.random().toString(36).substr(2, 9)
-    }
-});
-
 describe('boardStore', () => {
     beforeEach(() => {
         // Reset store before each test
