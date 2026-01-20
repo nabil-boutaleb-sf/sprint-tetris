@@ -51,7 +51,7 @@ describe('TaskDetailModal', () => {
         const taskWithoutDesc = { ...mockTask, description: undefined };
         render(<TaskDetailModal task={taskWithoutDesc} onClose={jest.fn()} />);
 
-        expect(screen.getByText('Description editing is not yet supported.')).toBeInTheDocument();
+        expect(screen.getByText('Tasks will get descriptions from Asana.')).toBeInTheDocument();
     });
 
     it('calls updateTask with changes when saved', () => {

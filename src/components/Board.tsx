@@ -7,15 +7,15 @@ import { DndContext, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSe
 import { useState, useEffect } from 'react';
 import { TaskCard } from './TaskCard';
 import { Task } from '@/types';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, RefreshCw } from 'lucide-react';
 import { TaskDetailModal } from './TaskDetailModal';
 import Link from 'next/link';
 import { AssigneeLegend } from './AssigneeLegend';
-import { useAutoIngest } from '@/hooks/useAutoIngest';
+import { useDataSync } from '@/hooks/useDataSync';
 
 export default function Board() {
     const { tasks, sprints, moveTask, filterAssignee, setFilterAssignee, isDemoMode } = useBoardStore();
-    useAutoIngest();
+    const { refreshData, isSyncing } = useDataSync();
 
     // Drag Sensors
     const sensors = useSensors(
@@ -134,6 +134,15 @@ export default function Board() {
                             >
                                 Manage Sprints
                             </Link>
+
+                            <button
+                                onClick={refreshData}
+                                disabled={isSyncing}
+                                className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors text-slate-500 ${isSyncing ? 'animate-spin' : ''}`}
+                                title="Refresh Data from Asana"
+                            >
+                                <RefreshCw size={20} />
+                            </button>
 
                             <button
                                 onClick={toggleTheme}
