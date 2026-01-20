@@ -1,16 +1,7 @@
 import { create } from 'zustand';
-import { Task, SprintName, Sprint } from '@/types';
+import { batchUpdateTasks } from '@/lib/asana';
+import { Task, SprintName, Sprint, PendingChange } from '@/types';
 import { MOCK_TASKS, SPRINTS } from '@/data/mockData';
-
-export interface PendingChange {
-    id: string;
-    taskId: string;
-    taskTitle: string;
-    field: string;
-    oldValue: any;
-    newValue: any;
-    timestamp: number;
-}
 
 // Simple UUID generator that works in non-secure contexts (http)
 const generateId = () => {
@@ -24,6 +15,7 @@ interface BoardState {
     filterAssignee: string | null;
     isDemoMode: boolean;
     pendingChanges: PendingChange[];
+    isSyncing: boolean;
 
     // Actions
     importData: (sprints: Sprint[], tasks: Task[]) => void;
@@ -36,15 +28,17 @@ interface BoardState {
     updateAssigneeCapacity: (sprintName: string, assignee: string, capacity: number) => void;
     addSprint: (name: string, capacity: number) => void;
     deleteSprint: (name: string) => void;
+    addTask: (task: Task) => void;
     undoChange: (changeId: string) => void;
     clearPendingChanges: () => void;
+    syncChanges: (token: string, projectGid: string) => Promise<void>;
 }
 
 import { persist } from 'zustand/middleware';
 
 export const useBoardStore = create<BoardState>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             tasks: MOCK_TASKS,
             sprints: SPRINTS.map(s => ({ ...s, assigneeCapacities: {} })),
             isBacklogOpen: true,
@@ -52,6 +46,7 @@ export const useBoardStore = create<BoardState>()(
             isDemoMode: true,
 
             pendingChanges: [],
+            isSyncing: false,
 
             importData: (sprints, tasks) => set({ sprints, tasks, isDemoMode: false, pendingChanges: [] }),
             setDemoMode: (isDemo) => set({ isDemoMode: isDemo }),
@@ -131,6 +126,27 @@ export const useBoardStore = create<BoardState>()(
                 };
             }),
 
+            addTask: (task) => set((state) => {
+                // Ensure new tasks are in Backlog by default if not specified
+                const newTask = { ...task, status: task.status || 'Backlog', sprint: task.sprint || null };
+
+                // Log creation as a pending change (optional, but good for consistency)
+                const change: PendingChange = {
+                    id: generateId(),
+                    taskId: newTask.id,
+                    taskTitle: newTask.title,
+                    field: 'created',
+                    oldValue: null,
+                    newValue: 'created',
+                    timestamp: Date.now()
+                };
+
+                return {
+                    tasks: [...state.tasks, newTask],
+                    pendingChanges: [...(state.pendingChanges || []), change]
+                };
+            }),
+
             undoChange: (changeId) => set((state) => {
                 const change = state.pendingChanges.find(c => c.id === changeId);
                 if (!change) return state;
@@ -161,6 +177,21 @@ export const useBoardStore = create<BoardState>()(
             }),
 
             clearPendingChanges: () => set({ pendingChanges: [] }),
+
+            syncChanges: async (token, projectGid) => {
+                const { pendingChanges } = get();
+                if (pendingChanges.length === 0) return;
+
+                set({ isSyncing: true });
+                try {
+                    await batchUpdateTasks(token, pendingChanges, projectGid);
+                    set({ pendingChanges: [], isSyncing: false });
+                } catch (error) {
+                    console.error("Sync failed:", error);
+                    set({ isSyncing: false });
+                    throw error; // Re-throw to let UI handle toast
+                }
+            },
 
             updateSprintCapacity: (sprintName, capacity) => set((state) => ({
                 sprints: state.sprints.map(s =>

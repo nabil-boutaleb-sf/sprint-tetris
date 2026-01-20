@@ -3,23 +3,28 @@ import { calculateVisualHeight, getAssigneeColorClass } from './uiUtils';
 describe('uiUtils', () => {
     describe('calculateVisualHeight', () => {
         it('calculates height for 0 points', () => {
-            // Base height + 0
-            expect(calculateVisualHeight(0)).toBe(16);
+            // Base height 12 + 0
+            expect(calculateVisualHeight(0)).toBe(12);
         });
 
         it('calculates height for 0.5 points', () => {
-            // 16 + (0.5 * 8) = 20
-            expect(calculateVisualHeight(0.5)).toBe(20);
+            // 12 + (0.5 * 8) = 16
+            expect(calculateVisualHeight(0.5)).toBe(16);
+        });
+
+        it('calculates height for 1 point', () => {
+            // 12 + (1 * 8) = 20
+            expect(calculateVisualHeight(1)).toBe(20);
         });
 
         it('calculates height for 5 points', () => {
-            // 16 + (5 * 8) = 56
-            expect(calculateVisualHeight(5)).toBe(56);
+            // 12 + (5 * 8) = 52
+            expect(calculateVisualHeight(5)).toBe(52);
         });
 
         it('calculates height for 13 points', () => {
-            // 16 + (13 * 8) = 120
-            expect(calculateVisualHeight(13)).toBe(120);
+            // 12 + (13 * 8) = 116
+            expect(calculateVisualHeight(13)).toBe(116);
         });
     });
 

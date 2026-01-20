@@ -25,6 +25,7 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
     const [status, setStatus] = useState<Task['status']>('To Do');
     const [sprint, setSprint] = useState<string | null>(null);
     const [assignee, setAssignee] = useState<string>('');
+    const [description, setDescription] = useState('');
 
     // Initialize state when task changes
     useEffect(() => {
@@ -34,6 +35,13 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
             setStatus(task.status);
             setSprint(task.sprint);
             setAssignee(task.assignee || '');
+            // Strip HTML for now since we use a simple textarea. 
+            // In a real app we might want a rich text editor or html-to-markdown.
+            // For now, we just edit the raw html or text.
+            // Actually, let's keep it simple: if it has HTML tags, we show them.
+            // Or better: strip tags for display? No, that destroys data.
+            // Let's just load it as is.
+            setDescription(task.description || '');
         }
     }, [task]);
 
@@ -44,6 +52,7 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
         updateTask(task.id, {
             title,
             points,
+            description,
             status,
             sprint: sprint || null,
             assignee: assignee || undefined,
@@ -155,25 +164,13 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
                         <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
                             <Tag size={16} /> Description
                         </h3>
-                        <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 text-sm leading-relaxed overflow-x-auto">
-                            {(() => {
-                                const desc = task.description || '';
-                                const hasContent = desc.replace(/<[^>]*>/g, '').trim().length > 0;
-
-                                if (hasContent) {
-                                    return (
-                                        <div
-                                            className="prose dark:prose-invert prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0"
-                                            dangerouslySetInnerHTML={{ __html: desc }}
-                                        />
-                                    );
-                                }
-                                return (
-                                    <p className="italic text-slate-400">
-                                        No description content available from Asana.
-                                    </p>
-                                );
-                            })()}
+                        <div className="p-1">
+                            <textarea
+                                value={description}
+                                onChange={e => setDescription(e.target.value)}
+                                className="w-full min-h-[150px] p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 text-sm leading-relaxed outline-none focus:ring-1 focus:ring-purple-500 resize-y"
+                                placeholder="Add a description..."
+                            />
                         </div>
                     </div>
 

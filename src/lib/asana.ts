@@ -1,4 +1,4 @@
-import { Task, Sprint, SprintName } from '@/types';
+import { Task, Sprint, SprintName, PendingChange } from '@/types';
 import { parseSprintDates } from './dateUtils';
 
 interface AsanaTask {
@@ -189,4 +189,192 @@ export async function fetchAsanaData(
     );
 
     return { sprints, tasks: relevantTasks };
+}
+
+export async function batchUpdateTasks(
+    token: string,
+    changes: PendingChange[],
+    projectGid: string
+): Promise<void> {
+    if (changes.length === 0) return;
+
+    // 1. Fetch Metadata (Sections & Custom Fields) to map values
+    const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    };
+
+    // Parallel fetch
+    const [sectionsRes, customFieldsRes] = await Promise.all([
+        fetch(`https://app.asana.com/api/1.0/projects/${projectGid}/sections`, { headers }),
+        fetch(`https://app.asana.com/api/1.0/projects/${projectGid}/custom_field_settings`, { headers })
+    ]);
+
+    if (!sectionsRes.ok || !customFieldsRes.ok) {
+        throw new Error("Failed to fetch project metadata for sync");
+    }
+
+    const sectionsData = await sectionsRes.json();
+    const cfData = await customFieldsRes.json();
+
+    // Map: Name -> GID
+    const sectionsMap: Record<string, string> = {};
+    sectionsData.data.forEach((s: any) => {
+        sectionsMap[s.name.toLowerCase()] = s.gid;
+    });
+
+    // Helpers to find IDs
+    const findSectionGid = (status: string) => {
+        // Map our statuses to simplified section keywords
+        const lower = status.toLowerCase();
+        if (lower === 'backlog') return sectionsMap['backlog'] || Object.values(sectionsMap)[0]; // Fallback?
+        if (lower === 'to do') return sectionsMap['to do'] || sectionsMap['todo'];
+        if (lower === 'in progress') return sectionsMap['in progress'] || sectionsMap['doing'];
+        if (lower === 'done') return sectionsMap['done'] || sectionsMap['complete'];
+        return undefined;
+    };
+
+    const pointsField = cfData.data.find((cf: any) => cf.custom_field.name.toLowerCase().includes('datapoints'));
+    const pointsGid = pointsField?.custom_field.gid;
+
+    const sprintField = cfData.data.find((cf: any) => cf.custom_field.name.toLowerCase().includes('sprints'));
+    const sprintGid = sprintField?.custom_field.gid;
+    const sprintEnumOptions = sprintField?.custom_field.enum_options || []; // Map Name -> GID
+
+    const findSprintEnumGid = (sprintName: string) => {
+        const option = sprintEnumOptions.find((o: any) => o.name === sprintName);
+        return option?.gid;
+    };
+
+    // 2. Group changes by Task ID
+    const changesByTask: Record<string, PendingChange[]> = {};
+    const createdTasks: PendingChange[] = [];
+
+    changes.forEach(c => {
+        if (c.field === 'created') {
+            createdTasks.push(c);
+        } else {
+            if (!changesByTask[c.taskId]) changesByTask[c.taskId] = [];
+            changesByTask[c.taskId].push(c);
+        }
+    });
+
+    // 3. Process Creations
+    for (const creation of createdTasks) {
+        // Find if there are subsequent updates for this new task
+        const updates = changesByTask[creation.taskId] || [];
+
+        // Aggregate initial state
+        let title = creation.taskTitle;
+        let points = 0;
+        let status = 'Backlog';
+        let sprint = null;
+        let description = '';
+
+        updates.forEach(u => {
+            if (u.field === 'title') title = u.newValue;
+            if (u.field === 'points') points = u.newValue;
+            if (u.field === 'status') status = u.newValue;
+            if (u.field === 'sprint') sprint = u.newValue;
+            if (u.field === 'description') description = u.newValue;
+        });
+
+        const custom_fields: Record<string, any> = {};
+        if (pointsGid) custom_fields[pointsGid] = points;
+        if (sprintGid && sprint) {
+            const enumId = findSprintEnumGid(sprint);
+            if (enumId) custom_fields[sprintGid] = enumId;
+        }
+
+        const body: any = {
+            data: {
+                name: title,
+                projects: [projectGid],
+                custom_fields,
+                html_notes: description ? `<body>${description}</body>` : undefined
+            }
+        };
+
+        // Create Task
+        const createRes = await fetch(`https://app.asana.com/api/1.0/tasks`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(body)
+        });
+
+        if (createRes.ok) {
+            const json = await createRes.json();
+            const newGid = json.data.gid;
+
+            // Move to correct section
+            const sectionGid = findSectionGid(status);
+            if (sectionGid) {
+                await fetch(`https://app.asana.com/api/1.0/sections/${sectionGid}/addTask`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ data: { task: newGid } })
+                });
+            }
+        }
+    }
+
+    // 4. Process Updates for existing tasks
+    // Remove "created" tasks from this loop effectively by checking existing map keys
+    // (Note: newly created tasks were handled above, but their 'updates' were just merged. 
+    // We should NOT process the temporary ID in the updates loop. 
+    // Wait, the taskId in 'changesByTask' for a new task is the TEMP ID.
+    // The loop 'createdTasks' used that temp ID.
+    // So we should delete those keys from 'changesByTask' to avoid 404s on the temp ID.)
+
+    createdTasks.forEach(c => {
+        delete changesByTask[c.taskId];
+    });
+
+    const updatePromises = Object.keys(changesByTask).map(async (taskId) => {
+        const taskChanges = changesByTask[taskId];
+        if (taskChanges.length === 0) return;
+
+        // Aggregate changes
+        const data: any = {};
+        const custom_fields: Record<string, any> = {};
+        let sectionToMoveTo: string | undefined = undefined;
+
+        taskChanges.forEach(c => {
+            if (c.field === 'title') data.name = c.newValue;
+            if (c.field === 'description') data.html_notes = `<body>${c.newValue}</body>`;
+            if (c.field === 'points' && pointsGid) custom_fields[pointsGid] = c.newValue;
+            if (c.field === 'sprint' && sprintGid) {
+                const enumId = findSprintEnumGid(c.newValue);
+                if (enumId) custom_fields[sprintGid] = enumId;
+            }
+            if (c.field === 'status') {
+                sectionToMoveTo = findSectionGid(c.newValue);
+            }
+        });
+
+        if (Object.keys(custom_fields).length > 0) {
+            data.custom_fields = custom_fields;
+        }
+
+        // Apply Update
+        if (Object.keys(data).length > 0) {
+            await fetch(`https://app.asana.com/api/1.0/tasks/${taskId}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify({ data })
+            });
+        }
+
+        // Apply Move
+        if (sectionToMoveTo) {
+            await fetch(`https://app.asana.com/api/1.0/sections/${sectionToMoveTo}/addTask`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ data: { task: taskId } })
+            });
+        }
+    });
+
+    await Promise.all(updatePromises);
 }

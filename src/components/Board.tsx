@@ -16,8 +16,20 @@ import { ChangeLogModal } from './ChangeLogModal';
 import { History, UploadCloud } from 'lucide-react';
 
 export default function Board() {
-    const { tasks, sprints, moveTask, filterAssignee, setFilterAssignee, isDemoMode } = useBoardStore();
-    const { refreshData, isSyncing } = useDataSync();
+    const { tasks, sprints, moveTask, filterAssignee, setFilterAssignee, isDemoMode, isSyncing, pendingChanges } = useBoardStore();
+    const { refreshData, isRefreshing } = useDataSync(); // Removed pushChanges
+
+    /*
+    const handleSync = async () => {
+        try {
+            await pushChanges();
+            // Could add toast here
+        } catch (e) {
+            alert("Sync failed. Check console.");
+        }
+    };
+    */
+
 
     // Drag Sensors
     const sensors = useSensors(
@@ -32,7 +44,6 @@ export default function Board() {
     const [theme, setTheme] = useState<'dark' | 'light'>('dark');
     const [selectedTask, setSelectedTask] = useState<Task | null>(null); // For Modal
     const [isLogOpen, setIsLogOpen] = useState(false);
-    const { pendingChanges } = useBoardStore();
 
     // Sync state with DOM on mount (to respect layout.tsx script)
     useEffect(() => {
@@ -151,7 +162,7 @@ export default function Board() {
                             </button>
 
                             <button
-                                onClick={() => alert("Work in progress! Syncing back to Asana is coming soon.")}
+                                onClick={() => alert("Sync functionality is currently disabled.")}
                                 className={`
                                     flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
                                     ${pendingChanges.length > 0
@@ -167,8 +178,8 @@ export default function Board() {
 
                             <button
                                 onClick={refreshData}
-                                disabled={isSyncing}
-                                className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors text-slate-500 ${isSyncing ? 'animate-spin' : ''}`}
+                                disabled={isRefreshing || isSyncing}
+                                className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors text-slate-500 ${isRefreshing ? 'animate-spin' : ''}`}
                                 title="Refresh Data from Asana"
                             >
                                 <RefreshCw size={20} />

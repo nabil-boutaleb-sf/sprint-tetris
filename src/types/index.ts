@@ -24,3 +24,13 @@ export interface Sprint {
     capacity: number;
     assigneeCapacities: Record<string, number>;
 }
+
+export interface PendingChange {
+    id: string;
+    taskId: string;
+    taskTitle: string;
+    field: string;
+    oldValue: any;
+    newValue: any;
+    timestamp: number;
+}

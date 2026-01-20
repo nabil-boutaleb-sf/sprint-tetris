@@ -5,12 +5,12 @@ import { useBoardStore } from '@/store/boardStore';
 import { fetchAsanaData } from '@/lib/asana';
 
 export const useDataSync = () => {
-    const { importData } = useBoardStore();
-    const [isSyncing, setIsSyncing] = useState(false);
+    const { importData, syncChanges } = useBoardStore();
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const refreshData = async () => {
-        setIsSyncing(true);
+        setIsRefreshing(true);
         setError(null);
 
         try {
@@ -32,12 +32,30 @@ export const useDataSync = () => {
             importData(data.sprints, data.tasks);
 
         } catch (err) {
-            console.error("Manual sync failed:", err);
-            setError(err instanceof Error ? err.message : 'Sync failed');
+            console.error("Manual refresh failed:", err);
+            setError(err instanceof Error ? err.message : 'Refresh failed');
         } finally {
-            setIsSyncing(false);
+            setIsRefreshing(false);
         }
     };
 
-    return { refreshData, isSyncing, error };
+    const pushChanges = async () => {
+        setError(null);
+        try {
+            const token = localStorage.getItem('asana_token');
+            const gid = localStorage.getItem('asana_project_gid');
+            if (!token || !gid) throw new Error("Missing credentials");
+
+            await syncChanges(token, gid);
+
+            // Auto-refresh after sync to get latest state (e.g. correct IDs for new tasks)
+            await refreshData();
+        } catch (err) {
+            console.error("Push failed:", err);
+            setError(err instanceof Error ? err.message : 'Sync failed');
+            throw err;
+        }
+    };
+
+    return { refreshData, pushChanges, isRefreshing, error };
 };

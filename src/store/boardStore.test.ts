@@ -1,6 +1,10 @@
 import { act, renderHook } from '@testing-library/react';
 import { useBoardStore } from './boardStore';
 
+jest.mock('@/lib/asana', () => ({
+    batchUpdateTasks: jest.fn()
+}));
+
 describe('boardStore', () => {
     beforeEach(() => {
         // Reset store before each test
@@ -131,6 +135,27 @@ describe('boardStore', () => {
         expect(result.current.pendingChanges).toHaveLength(0); // Log cleared
     });
 
+    it('should add a new task', () => {
+        const { result } = renderHook(() => useBoardStore());
+        const newTask = {
+            id: 'new-1',
+            title: 'New Task',
+            points: 3,
+            status: 'Backlog',
+            assignee: null,
+            sprint: null
+        } as any;
+
+        act(() => {
+            result.current.addTask(newTask);
+        });
+
+        expect(result.current.tasks).toHaveLength(2);
+        expect(result.current.tasks[1].title).toBe('New Task');
+        expect(result.current.pendingChanges).toHaveLength(1);
+        expect(result.current.pendingChanges[0].field).toBe('created');
+    });
+
     it('should clear pending changes', () => {
         const { result } = renderHook(() => useBoardStore());
 
@@ -145,5 +170,27 @@ describe('boardStore', () => {
         });
 
         expect(result.current.pendingChanges).toHaveLength(0);
+    });
+
+    it('should call batchUpdateTasks and clear pending changes on sync', async () => {
+        const { result } = renderHook(() => useBoardStore());
+        const mockBatchUpdate = require('@/lib/asana').batchUpdateTasks;
+        mockBatchUpdate.mockResolvedValue(undefined);
+
+        // Make a change
+        act(() => {
+            result.current.updateTask('1', { status: 'Done' });
+        });
+
+        expect(result.current.pendingChanges).toHaveLength(1);
+
+        // Sync
+        await act(async () => {
+            await result.current.syncChanges('token', 'gid');
+        });
+
+        expect(mockBatchUpdate).toHaveBeenCalledWith('token', expect.any(Array), 'gid');
+        expect(result.current.pendingChanges).toHaveLength(0);
+        expect(result.current.isSyncing).toBe(false);
     });
 });

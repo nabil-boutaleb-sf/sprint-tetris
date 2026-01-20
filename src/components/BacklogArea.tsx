@@ -3,6 +3,7 @@ import { DraggableTask } from './DraggableTask';
 import { Task } from '@/types';
 import clsx from 'clsx';
 import { useBoardStore } from '@/store/boardStore';
+import { Plus } from 'lucide-react';
 
 interface BacklogAreaProps {
     tasks: Task[];
@@ -10,33 +11,44 @@ interface BacklogAreaProps {
 }
 
 export const BacklogArea = ({ tasks, onTaskClick }: BacklogAreaProps) => {
-    const { isBacklogOpen, toggleBacklog } = useBoardStore();
+    const { addTask } = useBoardStore();
     const { setNodeRef, isOver } = useDroppable({
         id: 'backlog',
         data: { type: 'backlog' },
     });
 
+    const handleCreateTask = () => {
+        const newTask: Task = {
+            // Simple ID generator safe for client
+            id: 'task-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+            title: 'New Task',
+            points: 0,
+            status: 'Backlog',
+            sprint: null,
+            description: ''
+        };
+        addTask(newTask);
+        onTaskClick(newTask);
+    };
+
     return (
         <div
             className={clsx(
-                "border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 transition-all duration-300 ease-in-out flex flex-col h-full",
-                isBacklogOpen ? "w-80 translate-x-0" : "w-12 translate-x-0" // Minimized state vs Hidden
+                "border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 flex flex-col h-full w-80 shrink-0"
             )}
         >
             <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-10 flex justify-between items-center h-16">
-                {isBacklogOpen && (
-                    <>
-                        <div>
-                            <h2 className="font-semibold text-slate-700 dark:text-slate-300">Backlog</h2>
-                            <span className="text-xs text-slate-500">{tasks.length} items</span>
-                        </div>
-                    </>
-                )}
+                <div>
+                    <h2 className="font-semibold text-slate-700 dark:text-slate-300">Backlog</h2>
+                    <span className="text-xs text-slate-500">{tasks.length} items</span>
+                </div>
+
                 <button
-                    onClick={toggleBacklog}
-                    className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-500"
+                    onClick={handleCreateTask}
+                    className="p-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors shadow-sm"
+                    title="Create New Task"
                 >
-                    {isBacklogOpen ? '<<' : '>>'}
+                    <Plus size={20} />
                 </button>
             </div>
 
@@ -44,8 +56,7 @@ export const BacklogArea = ({ tasks, onTaskClick }: BacklogAreaProps) => {
                 ref={setNodeRef}
                 className={clsx(
                     "p-4 overflow-y-auto flex-1 space-y-2 transition-colors",
-                    isOver && "bg-purple-50 dark:bg-purple-900/20",
-                    !isBacklogOpen && "hidden"
+                    isOver && "bg-purple-50 dark:bg-purple-900/20"
                 )}
                 style={{ minHeight: '200px' }}
             >
@@ -55,13 +66,6 @@ export const BacklogArea = ({ tasks, onTaskClick }: BacklogAreaProps) => {
                     </div>
                 ))}
             </div>
-
-            {/* Vertical text when closed */}
-            {!isBacklogOpen && (
-                <div className="flex-1 flex items-center justify-center writing-vertical-rl rotate-180 text-slate-400 font-bold tracking-widest py-8">
-                    BACKLOG
-                </div>
-            )}
         </div>
     );
 };
