@@ -153,16 +153,24 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
                             <Tag size={16} /> Description
                         </h3>
                         <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 text-sm leading-relaxed overflow-x-auto">
-                            {task.description ? (
-                                <div
-                                    className="prose dark:prose-invert prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0"
-                                    dangerouslySetInnerHTML={{ __html: task.description }}
-                                />
-                            ) : (
-                                <p className="italic text-slate-400">
-                                    No description content available from Asana.
-                                </p>
-                            )}
+                            {(() => {
+                                const desc = task.description || '';
+                                const hasContent = desc.replace(/<[^>]*>/g, '').trim().length > 0;
+
+                                if (hasContent) {
+                                    return (
+                                        <div
+                                            className="prose dark:prose-invert prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0"
+                                            dangerouslySetInnerHTML={{ __html: desc }}
+                                        />
+                                    );
+                                }
+                                return (
+                                    <p className="italic text-slate-400">
+                                        No description content available from Asana.
+                                    </p>
+                                );
+                            })()}
                         </div>
                     </div>
 

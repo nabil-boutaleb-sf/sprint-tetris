@@ -54,6 +54,13 @@ describe('TaskDetailModal', () => {
         expect(screen.getByText('No description content available from Asana.')).toBeInTheDocument();
     });
 
+    it('renders fallback text when description is empty HTML', () => {
+        const taskWithEmptyHtml = { ...mockTask, description: '<body>   <br>  </body>' };
+        render(<TaskDetailModal task={taskWithEmptyHtml} onClose={jest.fn()} />);
+
+        expect(screen.getByText('No description content available from Asana.')).toBeInTheDocument();
+    });
+
     it('calls updateTask with changes when saved', () => {
         const onClose = jest.fn();
         render(<TaskDetailModal task={mockTask} onClose={onClose} />);
