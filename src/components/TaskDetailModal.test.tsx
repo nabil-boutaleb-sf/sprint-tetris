@@ -45,7 +45,8 @@ describe('TaskDetailModal', () => {
         expect(screen.getByDisplayValue('5')).toBeInTheDocument();
         expect(screen.getByDisplayValue('Alice')).toBeInTheDocument();
         expect(screen.getByDisplayValue('Sprint 1')).toBeInTheDocument();
-        expect(screen.getByText('Test Description')).toBeInTheDocument();
+        // Check for textarea value (raw HTML string since we just load it)
+        expect(screen.getByDisplayValue('<p>Test Description</p>')).toBeInTheDocument();
 
         const link = screen.getByText('Open in Asana').closest('a');
         expect(link).toHaveAttribute('href', 'https://app.asana.com/0/123/456');
@@ -59,18 +60,12 @@ describe('TaskDetailModal', () => {
         expect(link).toBeNull();
     });
 
-    it('renders fallback text when description is missing', () => {
+    it('renders empty textarea when description is missing', () => {
         const taskWithoutDesc = { ...mockTask, description: undefined };
         render(<TaskDetailModal task={taskWithoutDesc} onClose={jest.fn()} />);
 
-        expect(screen.getByText('No description content available from Asana.')).toBeInTheDocument();
-    });
-
-    it('renders fallback text when description is empty HTML', () => {
-        const taskWithEmptyHtml = { ...mockTask, description: '<body>   <br>  </body>' };
-        render(<TaskDetailModal task={taskWithEmptyHtml} onClose={jest.fn()} />);
-
-        expect(screen.getByText('No description content available from Asana.')).toBeInTheDocument();
+        const textarea = screen.getByPlaceholderText('Add a description...');
+        expect(textarea).toHaveValue('');
     });
 
     it('calls updateTask with changes when saved', () => {
@@ -83,12 +78,16 @@ describe('TaskDetailModal', () => {
         // Change Points
         fireEvent.change(screen.getByDisplayValue('5'), { target: { value: '8' } });
 
+        // Change Description
+        fireEvent.change(screen.getByDisplayValue('<p>Test Description</p>'), { target: { value: 'Updated Description' } });
+
         // Save
         fireEvent.click(screen.getByText('Save Changes'));
 
         expect(mockUpdateTask).toHaveBeenCalledWith('1', expect.objectContaining({
             title: 'Updated Title',
-            points: 8
+            points: 8,
+            description: 'Updated Description'
         }));
         expect(onClose).toHaveBeenCalled();
     });
