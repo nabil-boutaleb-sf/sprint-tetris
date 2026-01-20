@@ -51,7 +51,7 @@ describe('TaskDetailModal', () => {
         const taskWithoutDesc = { ...mockTask, description: undefined };
         render(<TaskDetailModal task={taskWithoutDesc} onClose={jest.fn()} />);
 
-        expect(screen.getByText('Tasks will get descriptions from Asana.')).toBeInTheDocument();
+        expect(screen.getByText('No description content available from Asana.')).toBeInTheDocument();
     });
 
     it('calls updateTask with changes when saved', () => {

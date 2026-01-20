@@ -160,7 +160,7 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
                                 />
                             ) : (
                                 <p className="italic text-slate-400">
-                                    Tasks will get descriptions from Asana.
+                                    No description content available from Asana.
                                 </p>
                             )}
                         </div>

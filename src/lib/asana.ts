@@ -46,6 +46,12 @@ export async function fetchAsanaData(
     }
 
     const json = await response.json();
+    console.log('Asana Fetch Debug:', {
+        taskCount: json.data?.length,
+        firstTaskKeys: json.data?.[0] ? Object.keys(json.data[0]) : [],
+        firstTaskHtml: json.data?.[0]?.html_notes,
+        firstTaskNotes: json.data?.[0]?.notes
+    });
     const asanaTasks: AsanaTask[] = json.data;
 
     // 2. Identify Sprints and Map Tasks
