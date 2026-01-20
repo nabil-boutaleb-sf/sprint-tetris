@@ -34,7 +34,8 @@ describe('TaskDetailModal', () => {
         assignee: 'Alice',
         sprint: 'Sprint 1',
         color: 'bg-red-500',
-        description: '<p>Test Description</p>'
+        description: '<p>Test Description</p>',
+        permalink_url: 'https://app.asana.com/0/123/456'
     };
 
     it('renders task details correctly', () => {
@@ -45,6 +46,9 @@ describe('TaskDetailModal', () => {
         expect(screen.getByDisplayValue('Alice')).toBeInTheDocument();
         expect(screen.getByDisplayValue('Sprint 1')).toBeInTheDocument();
         expect(screen.getByText('Test Description')).toBeInTheDocument();
+
+        const link = screen.getByTitle('Open in Asana').closest('a');
+        expect(link).toHaveAttribute('href', 'https://app.asana.com/0/123/456');
     });
 
     it('renders fallback text when description is missing', () => {

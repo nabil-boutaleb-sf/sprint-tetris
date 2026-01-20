@@ -21,6 +21,7 @@ interface AsanaTask {
     completed: boolean;
     html_notes?: string;
     notes?: string;
+    permalink_url?: string;
 }
 
 export async function fetchAsanaData(
@@ -32,7 +33,7 @@ export async function fetchAsanaData(
 ): Promise<{ sprints: Sprint[]; tasks: Task[] }> {
 
     // 1. Fetch Tasks with relevant fields
-    const url = `https://app.asana.com/api/1.0/projects/${projectGid}/tasks?opt_fields=name,assignee.name,completed,memberships.section.name,memberships.project.gid,memberships.project.name,custom_fields.gid,custom_fields.name,custom_fields.type,custom_fields.number_value,custom_fields.multi_enum_values.name,custom_fields.display_value,html_notes,notes`;
+    const url = `https://app.asana.com/api/1.0/projects/${projectGid}/tasks?opt_fields=name,assignee.name,completed,memberships.section.name,memberships.project.gid,memberships.project.name,custom_fields.gid,custom_fields.name,custom_fields.type,custom_fields.number_value,custom_fields.multi_enum_values.name,custom_fields.display_value,html_notes,notes,permalink_url`;
 
     const response = await fetch(url, {
         headers: {
@@ -111,7 +112,8 @@ export async function fetchAsanaData(
             // If it has a sprint, it goes in the sprint column. If no sprint, it goes to backlog.
             points: points,
             assignee: assignee,
-            description: t.html_notes || t.notes // Prefer HTML, fallback to plain text
+            description: t.html_notes || t.notes, // Prefer HTML, fallback to plain text
+            permalink_url: t.permalink_url
         });
 
         // Collect Sprints

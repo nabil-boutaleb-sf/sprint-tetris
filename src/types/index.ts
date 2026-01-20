@@ -9,6 +9,7 @@ export interface Task {
     assignee?: string;
     color?: string; // Optional visual override
     description?: string; // HTML description from Asana
+    permalink_url?: string;
 }
 
 export interface SprintColumnData {

@@ -1,7 +1,7 @@
 'use client';
 
 import { Task } from '@/types';
-import { X, Calendar, User, Tag, AlertCircle, Save } from 'lucide-react';
+import { X, Calendar, User, Tag, AlertCircle, Save, ExternalLink } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
 import { useBoardStore } from '@/store/boardStore';
@@ -90,14 +90,28 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
                                 <option value="Done">Done</option>
                                 <option value="Backlog">Backlog</option>
                             </select>
+
                         </div>
 
-                        <textarea
-                            value={title}
-                            onChange={e => setTitle(e.target.value)}
-                            className="w-full text-2xl font-bold text-slate-800 dark:text-slate-100 bg-transparent outline-none focus:border-b-2 focus:border-purple-500 resize-none overflow-hidden"
-                            rows={2}
-                        />
+                        <div className="flex items-center gap-2">
+                            <textarea
+                                value={title}
+                                onChange={e => setTitle(e.target.value)}
+                                className="w-full text-2xl font-bold text-slate-800 dark:text-slate-100 bg-transparent outline-none focus:border-b-2 focus:border-purple-500 resize-none overflow-hidden"
+                                rows={2}
+                            />
+                            {task.permalink_url && (
+                                <a
+                                    href={task.permalink_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1.5 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 self-start mt-1 shrink-0"
+                                    title="Open in Asana"
+                                >
+                                    <ExternalLink size={20} />
+                                </a>
+                            )}
+                        </div>
                     </div>
                     <button
                         onClick={onClose}
