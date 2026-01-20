@@ -12,6 +12,8 @@ import { TaskDetailModal } from './TaskDetailModal';
 import Link from 'next/link';
 import { AssigneeLegend } from './AssigneeLegend';
 import { useDataSync } from '@/hooks/useDataSync';
+import { ChangeLogModal } from './ChangeLogModal';
+import { History, UploadCloud } from 'lucide-react';
 
 export default function Board() {
     const { tasks, sprints, moveTask, filterAssignee, setFilterAssignee, isDemoMode } = useBoardStore();
@@ -29,6 +31,8 @@ export default function Board() {
     const [activeDragTask, setActiveDragTask] = useState<Task | null>(null);
     const [theme, setTheme] = useState<'dark' | 'light'>('dark');
     const [selectedTask, setSelectedTask] = useState<Task | null>(null); // For Modal
+    const [isLogOpen, setIsLogOpen] = useState(false);
+    const { pendingChanges } = useBoardStore();
 
     // Sync state with DOM on mount (to respect layout.tsx script)
     useEffect(() => {
@@ -136,6 +140,32 @@ export default function Board() {
                             </Link>
 
                             <button
+                                onClick={() => setIsLogOpen(true)}
+                                className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                                title="View Pending Changes"
+                            >
+                                <History size={20} />
+                                {pendingChanges.length > 0 && (
+                                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-orange-500 rounded-full border-2 border-white dark:border-slate-900" />
+                                )}
+                            </button>
+
+                            <button
+                                onClick={() => alert("Work in progress! Syncing back to Asana is coming soon.")}
+                                className={`
+                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
+                                    ${pendingChanges.length > 0
+                                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50'
+                                        : 'bg-slate-50 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500 cursor-not-allowed'}
+                                `}
+                            >
+                                <UploadCloud size={16} />
+                                <span>Sync</span>
+                            </button>
+
+                            <div className="h-6 w-px bg-slate-200 dark:bg-zinc-700 mx-2" />
+
+                            <button
                                 onClick={refreshData}
                                 disabled={isSyncing}
                                 className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors text-slate-500 ${isSyncing ? 'animate-spin' : ''}`}
@@ -183,6 +213,8 @@ export default function Board() {
                     task={selectedTask}
                     onClose={() => setSelectedTask(null)}
                 />
+
+                {isLogOpen && <ChangeLogModal onClose={() => setIsLogOpen(false)} />}
             </div>
         </DndContext>
     );

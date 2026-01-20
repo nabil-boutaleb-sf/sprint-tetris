@@ -47,7 +47,7 @@ describe('TaskDetailModal', () => {
         expect(screen.getByDisplayValue('Sprint 1')).toBeInTheDocument();
         expect(screen.getByText('Test Description')).toBeInTheDocument();
 
-        const link = screen.getByTitle('Open in Asana').closest('a');
+        const link = screen.getByText('Open in Asana').closest('a');
         expect(link).toHaveAttribute('href', 'https://app.asana.com/0/123/456');
     });
 
@@ -55,7 +55,7 @@ describe('TaskDetailModal', () => {
         const taskWithoutLink = { ...mockTask, permalink_url: undefined };
         render(<TaskDetailModal task={taskWithoutLink} onClose={jest.fn()} />);
 
-        const link = screen.queryByTitle('Open in Asana');
+        const link = screen.queryByText('Open in Asana');
         expect(link).toBeNull();
     });
 

@@ -2,12 +2,23 @@ import { create } from 'zustand';
 import { Task, SprintName, Sprint } from '@/types';
 import { MOCK_TASKS, SPRINTS } from '@/data/mockData';
 
+export interface PendingChange {
+    id: string;
+    taskId: string;
+    taskTitle: string;
+    field: string;
+    oldValue: any;
+    newValue: any;
+    timestamp: number;
+}
+
 interface BoardState {
     tasks: Task[];
     sprints: Sprint[];
     isBacklogOpen: boolean;
     filterAssignee: string | null;
     isDemoMode: boolean;
+    pendingChanges: PendingChange[];
 
     // Actions
     importData: (sprints: Sprint[], tasks: Task[]) => void;
@@ -20,6 +31,7 @@ interface BoardState {
     updateAssigneeCapacity: (sprintName: string, assignee: string, capacity: number) => void;
     addSprint: (name: string, capacity: number) => void;
     deleteSprint: (name: string) => void;
+    clearPendingChanges: () => void;
 }
 
 import { persist } from 'zustand/middleware';
@@ -33,14 +45,31 @@ export const useBoardStore = create<BoardState>()(
             filterAssignee: null,
             isDemoMode: true,
 
-            importData: (sprints, tasks) => set({ sprints, tasks, isDemoMode: false }),
+            pendingChanges: [],
+
+            importData: (sprints, tasks) => set({ sprints, tasks, isDemoMode: false, pendingChanges: [] }),
             setDemoMode: (isDemo) => set({ isDemoMode: isDemo }),
 
             toggleBacklog: () => set((state) => ({ isBacklogOpen: !state.isBacklogOpen })),
             setFilterAssignee: (filterAssignee) => set({ filterAssignee }),
 
             moveTask: (taskId, targetSprint) => set((state) => {
+                const task = state.tasks.find(t => t.id === taskId);
+                if (!task) return state;
+
+                // Log the move
+                const change: PendingChange = {
+                    id: crypto.randomUUID(),
+                    taskId,
+                    taskTitle: task.title,
+                    field: 'sprint',
+                    oldValue: task.sprint,
+                    newValue: targetSprint || 'Backlog',
+                    timestamp: Date.now()
+                };
+
                 return {
+                    pendingChanges: [...state.pendingChanges, change],
                     tasks: state.tasks.map((t) => {
                         if (t.id !== taskId) return t;
                         if (!targetSprint) {
@@ -51,9 +80,27 @@ export const useBoardStore = create<BoardState>()(
                 };
             }),
 
-            updateTask: (taskId, updates) => set((state) => ({
-                tasks: state.tasks.map(t => t.id === taskId ? { ...t, ...updates } : t)
-            })),
+            updateTask: (taskId, updates) => set((state) => {
+                const task = state.tasks.find(t => t.id === taskId);
+                if (!task) return state;
+
+                const newChanges: PendingChange[] = Object.keys(updates).map(key => ({
+                    id: crypto.randomUUID(),
+                    taskId,
+                    taskTitle: task.title,
+                    field: key,
+                    oldValue: (task as any)[key],
+                    newValue: (updates as any)[key],
+                    timestamp: Date.now()
+                }));
+
+                return {
+                    pendingChanges: [...state.pendingChanges, ...newChanges],
+                    tasks: state.tasks.map(t => t.id === taskId ? { ...t, ...updates } : t)
+                };
+            }),
+
+            clearPendingChanges: () => set({ pendingChanges: [] }),
 
             updateSprintCapacity: (sprintName, capacity) => set((state) => ({
                 sprints: state.sprints.map(s =>
@@ -90,7 +137,8 @@ export const useBoardStore = create<BoardState>()(
                 tasks: state.tasks,
                 sprints: state.sprints,
                 isDemoMode: state.isDemoMode,
-                filterAssignee: state.filterAssignee
+                filterAssignee: state.filterAssignee,
+                pendingChanges: state.pendingChanges
             }),
         }
     )

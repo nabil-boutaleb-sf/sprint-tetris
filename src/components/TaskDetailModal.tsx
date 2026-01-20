@@ -100,17 +100,6 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
                                 className="w-full text-2xl font-bold text-slate-800 dark:text-slate-100 bg-transparent outline-none focus:border-b-2 focus:border-purple-500 resize-none overflow-hidden"
                                 rows={2}
                             />
-                            {task.permalink_url && (
-                                <a
-                                    href={task.permalink_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-1.5 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 self-start mt-1 shrink-0"
-                                    title="Open in Asana"
-                                >
-                                    <ExternalLink size={20} />
-                                </a>
-                            )}
                         </div>
                     </div>
                     <button
@@ -199,17 +188,32 @@ export const TaskDetailModal = ({ task, onClose }: TaskDetailModalProps) => {
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 shrink-0">
-                    <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition-colors flex items-center gap-2 shadow-sm"
-                    >
-                        <Save size={16} />
-                        Save Changes
-                    </button>
+                <div className="p-4 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                    <div>
+                        {task.permalink_url && (
+                            <a
+                                href={task.permalink_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-sm text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                            >
+                                <ExternalLink size={16} />
+                                <span>Open in Asana</span>
+                            </a>
+                        )}
+                    </div>
+                    <div className="flex gap-3">
+                        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition-colors flex items-center gap-2 shadow-sm"
+                        >
+                            <Save size={16} />
+                            Save Changes
+                        </button>
+                    </div>
                 </div>
 
             </div>
