@@ -59,14 +59,13 @@ export const useBoardStore = create<BoardState>()(
             setFilterAssignee: (filterAssignee) => set({ filterAssignee }),
 
             moveTask: (taskId, targetSprint) => set((state) => {
-                // Log for debugging
-                console.log(`[BoardStore] Moving task ${taskId} to ${targetSprint}`);
-
                 const task = state.tasks.find(t => t.id === taskId);
-                if (!task) {
-                    console.error(`[BoardStore] Task ${taskId} not found!`);
-                    return state;
-                }
+                if (!task) return state;
+
+                // Ignore if no change
+                const target = targetSprint || 'Backlog';
+                const current = task.sprint || 'Backlog';
+                if (target === current) return state;
 
                 // Log the move
                 const change: PendingChange = {
@@ -92,23 +91,35 @@ export const useBoardStore = create<BoardState>()(
             }),
 
             updateTask: (taskId, updates) => set((state) => {
-                console.log(`[BoardStore] Updating task ${taskId}`, updates);
-
                 const task = state.tasks.find(t => t.id === taskId);
-                if (!task) {
-                    console.error(`[BoardStore] Task ${taskId} not found!`);
-                    return state;
-                }
+                if (!task) return state;
 
-                const newChanges: PendingChange[] = Object.keys(updates).map(key => ({
-                    id: generateId(),
-                    taskId,
-                    taskTitle: task.title,
-                    field: key,
-                    oldValue: (task as any)[key],
-                    newValue: (updates as any)[key],
-                    timestamp: Date.now()
-                }));
+                const newChanges: PendingChange[] = [];
+
+                Object.keys(updates).forEach(key => {
+                    const k = key as keyof Task;
+                    const oldValue = task[k];
+                    const newValue = updates[k];
+
+                    // Strict equality check
+                    if (oldValue === newValue) return;
+
+                    newChanges.push({
+                        id: generateId(),
+                        taskId,
+                        taskTitle: task.title,
+                        field: key,
+                        oldValue: oldValue,
+                        newValue: newValue,
+                        timestamp: Date.now()
+                    });
+                });
+
+                if (newChanges.length === 0) {
+                    return {
+                        tasks: state.tasks.map(t => t.id === taskId ? { ...t, ...updates } : t)
+                    };
+                }
 
                 return {
                     pendingChanges: [...(state.pendingChanges || []), ...newChanges],
