@@ -28,12 +28,18 @@ This tool visualizes Asana tasks as "cards" where the **height is proportional t
 - **Task Details Modal**: Click any card to view full details (Assignee, Sprints, Description placeholder).
 - **Visual Polish**: Glassmorphism effects, smooth transitions, and stable layout during drag operations.
 
+### Phase 5: Production Readiness
+- **Asana Integration**: Implemented (One-way ingest + Token management).
+- **Persistence**: LocalStorage support for state and credentials.
+- **Testing**: Unit tests for Hooks and Components.
+
 ## Tech Stack
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Styling**: TailwindCSS 4
 - **State**: Zustand
 - **DnD**: @dnd-kit/core
 - **Icons**: Lucide React
+- **Testing**: Jest + React Testing Library
 
 ## Getting Started
 
@@ -47,7 +53,14 @@ This tool visualizes Asana tasks as "cards" where the **height is proportional t
     ```
 3.  Open [http://localhost:3000](http://localhost:3000).
 
+## Tests
+Run the test suite:
+```bash
+npm test
+```
+
 ## Next Steps / Roadmap
-- [ ] **Asana Integration**: Replace `mockData.ts` with real Asana API calls.
-- [ ] **Sprint Management Page**: Dedicated UI for managing sprint dates and capacities per analyst.
-- [ ] **Persistance**: Save state to local storage or database (currently resets on reload).
+See `ROADMAP.md` for details.
+- [ ] **Two-Way Sync**: Push changes back to Asana.
+- [ ] **Smart Analytics**: Velocity-based capacity planning.
+- [ ] **Scenario Mode**: "What-if" planning sandbox.

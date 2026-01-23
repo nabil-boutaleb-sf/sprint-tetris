@@ -33,10 +33,7 @@ Create a user-friendly visualization tool ("Sprint Tetris") that clearly demonst
 - **Source**: Currently `mockData.ts`. Future: Asana API.
 
 ## Future Roadmap
-### Phase 5: Persistence & Integration
-- **Asana Integration**: Two-way sync with Asana.
-- **Persistence**: Save state to Database/LocalStorage.
-
-### Phase 6: Sprint Management
-- **Management Page**: Dedicated view to set dates and capacities per analyst.
-- **Analytics**: Auto-calculate velocity based on past sprints.
+See `ROADMAP.md` for the official feature plan, including:
+- Two-Way Asana Sync
+- Smart Analytics & Availability Management
+- Scenario "Playground" Mode

@@ -14,12 +14,14 @@ interface BoardState {
     isBacklogOpen: boolean;
     filterAssignee: string | null;
     isDemoMode: boolean;
+    isFunModeEnabled: boolean;
     pendingChanges: PendingChange[];
     isSyncing: boolean;
 
     // Actions
     importData: (sprints: Sprint[], tasks: Task[]) => void;
     setDemoMode: (isDemo: boolean) => void;
+    toggleFunMode: () => void;
     toggleBacklog: () => void;
     setFilterAssignee: (assignee: string | null) => void;
     moveTask: (taskId: string, targetSprint: SprintName | null) => void;
@@ -44,13 +46,13 @@ export const useBoardStore = create<BoardState>()(
             isBacklogOpen: true,
             filterAssignee: null,
             isDemoMode: true,
-
+            isFunModeEnabled: false,
             pendingChanges: [],
             isSyncing: false,
 
             importData: (sprints, tasks) => set({ sprints, tasks, isDemoMode: false, pendingChanges: [] }),
             setDemoMode: (isDemo) => set({ isDemoMode: isDemo }),
-
+            toggleFunMode: () => set((state) => ({ isFunModeEnabled: !state.isFunModeEnabled })),
             toggleBacklog: () => set((state) => ({ isBacklogOpen: !state.isBacklogOpen })),
             setFilterAssignee: (filterAssignee) => set({ filterAssignee }),
 
@@ -228,6 +230,7 @@ export const useBoardStore = create<BoardState>()(
                 tasks: state.tasks,
                 sprints: state.sprints,
                 isDemoMode: state.isDemoMode,
+                isFunModeEnabled: state.isFunModeEnabled,
                 filterAssignee: state.filterAssignee,
                 pendingChanges: state.pendingChanges
             }),

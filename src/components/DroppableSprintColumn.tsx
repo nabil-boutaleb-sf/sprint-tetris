@@ -1,10 +1,11 @@
 import { useDroppable } from '@dnd-kit/core';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import { useBoardStore } from '@/store/boardStore';
 import { DraggableTask } from './DraggableTask';
 import { Task } from '@/types';
 import { calculateVisualHeight } from '@/lib/uiUtils';
+import confetti from 'canvas-confetti';
 
 interface DroppableSprintColumnProps {
     name: string;
@@ -18,7 +19,7 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
         data: { type: 'sprint', name },
     });
 
-    const { sprints, updateSprintCapacity, updateAssigneeCapacity, filterAssignee } = useBoardStore();
+    const { sprints, updateSprintCapacity, updateAssigneeCapacity, filterAssignee, isFunModeEnabled } = useBoardStore();
     const sprint = sprints.find(s => s.name === name);
 
     // Logic: If filter is on, use specific cap. If specific cap is undefined, fallback to sprint capacity
@@ -58,6 +59,76 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
     const effectiveLoad = totalPoints + qaBuffer;
 
     const fillPercentage = (effectiveLoad / effectiveCapacity) * 100;
+
+    // Confetti Effect Ref
+    const hasTriggeredConfetti = useRef(false);
+
+    // Sound Refs
+    const successAudioRef = useRef<HTMLAudioElement | null>(null);
+    const lockAudioRef = useRef<HTMLAudioElement | null>(null);
+    const warningAudioRef = useRef<HTMLAudioElement | null>(null);
+
+    // Initialize Audio
+    useEffect(() => {
+        successAudioRef.current = new Audio('/levelup.mp3');
+        successAudioRef.current.volume = 0.4;
+
+        lockAudioRef.current = new Audio('/tetris_lock.wav');
+        lockAudioRef.current.volume = 0.3;
+
+        warningAudioRef.current = new Audio('/capacity_warning.wav');
+        warningAudioRef.current.volume = 0.3;
+    }, []);
+
+    // Effect: Trigger Confetti & Sound on "Perfect Fill" (92-100%)
+    useEffect(() => {
+        if (fillPercentage >= 92 && fillPercentage <= 100) {
+            if (!hasTriggeredConfetti.current) {
+                // Find the element position to shoot confetti from
+                const element = document.getElementById(`sprint-header-${name}`);
+                if (element) {
+                    const rect = element.getBoundingClientRect();
+                    const x = (rect.left + rect.width / 2) / window.innerWidth;
+                    const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+                    // Trigger Confetti & Sound (if Fun Mode Enabled)
+                    if (isFunModeEnabled) {
+                        confetti({
+                            particleCount: 50,
+                            spread: 60,
+                            origin: { x, y },
+                            colors: ['#a855f7', '#a855f7', '#fafafa'], // Purple & White
+                            disableForReducedMotion: true
+                        });
+
+                        // Play Success Chime + Lock Sound slightly delayed
+                        successAudioRef.current?.play().catch(() => { });
+                        setTimeout(() => {
+                            lockAudioRef.current?.play().catch(() => { });
+                        }, 300);
+                    }
+                }
+                hasTriggeredConfetti.current = true;
+            }
+        } else {
+            hasTriggeredConfetti.current = false;
+        }
+    }, [fillPercentage, name, isFunModeEnabled]);
+
+    // Effect: Trigger Warning Sound on Overage (only once per breach)
+    const hasTriggeredWarning = useRef(false);
+    useEffect(() => {
+        if (fillPercentage > 100) {
+            if (!hasTriggeredWarning.current) {
+                if (isFunModeEnabled) {
+                    warningAudioRef.current?.play().catch(() => { });
+                }
+                hasTriggeredWarning.current = true;
+            }
+        } else {
+            hasTriggeredWarning.current = false;
+        }
+    }, [fillPercentage, isFunModeEnabled]);
 
     // Visual Height scaling based on GLOBAL capacity to keep columns aligned?
     // Or relative to this view? If I filter to "Alice", should the column shrink to her small capacity?
@@ -118,7 +189,7 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
     return (
         <div ref={setNodeRef} className="flex flex-col w-[280px] shrink-0 gap-3 relative">
             {/* Header */}
-            <div className="flex justify-between items-center px-1">
+            <div id={`sprint-header-${name}`} className="flex justify-between items-center px-1">
                 <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-slate-900 dark:text-gray-100">{name}</h3>
                     {filterAssignee && (
@@ -183,12 +254,24 @@ export const DroppableSprintColumn = ({ name, tasks, onTaskClick }: DroppableSpr
             {/* The Dynamic Container */}
             <div
                 className={clsx(
-                    "relative rounded-xl border-2 transition-colors duration-200 p-1 flex flex-col min-h-[150px] shadow-sm",
+                    "relative rounded-xl border-2 transition-all duration-300 p-1 flex flex-col min-h-[150px] shadow-sm",
                     bgColor,
-                    borderColor
+                    borderColor,
+                    // Lock-in Pulse Animation for 92-100% (Only in Fun Mode)
+                    (isFunModeEnabled && fillPercentage >= 92 && fillPercentage <= 100) && "ring-4 ring-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.6)] scale-[1.02] animate-pulse"
                 )}
                 style={{ minHeight: `${Math.max(idealMinHeight, 100)}px`, transition: 'min-height 0.3s ease-out' }}
             >
+                {/* Lock-in Icon Overlay */}
+                {(isFunModeEnabled && fillPercentage >= 92 && fillPercentage <= 100) && (
+                    <div className="absolute -top-3 -right-3 bg-purple-600 text-white p-1.5 rounded-full shadow-lg animate-in zoom-in spin-in-12 duration-300 z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                    </div>
+                )}
+
                 {/* Tasks */}
                 <div className="flex flex-col gap-1 w-full pb-1 h-full">
                     {tasks.map(task => (

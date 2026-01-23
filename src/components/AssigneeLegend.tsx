@@ -11,8 +11,7 @@ export const AssigneeLegend = () => {
     const assignees = Array.from(new Set(tasks.map(t => t.assignee).filter(Boolean))) as string[];
 
     return (
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Filter:</span>
+        <div className="flex items-center gap-2 flex-wrap py-1">
 
             <button
                 onClick={() => setFilterAssignee(null)}

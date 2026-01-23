@@ -7,7 +7,7 @@ import { DndContext, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSe
 import { useState, useEffect } from 'react';
 import { TaskCard } from './TaskCard';
 import { Task } from '@/types';
-import { Moon, Sun, RefreshCw } from 'lucide-react';
+import { Moon, Sun, RefreshCw, Volume2, VolumeX, PartyPopper } from 'lucide-react';
 import { TaskDetailModal } from './TaskDetailModal';
 import Link from 'next/link';
 import { AssigneeLegend } from './AssigneeLegend';
@@ -16,7 +16,10 @@ import { ChangeLogModal } from './ChangeLogModal';
 import { History, UploadCloud } from 'lucide-react';
 
 export default function Board() {
-    const { tasks, sprints, moveTask, filterAssignee, setFilterAssignee, isDemoMode, isSyncing, pendingChanges } = useBoardStore();
+    const {
+        tasks, sprints, moveTask, filterAssignee, setFilterAssignee,
+        isDemoMode, isSyncing, pendingChanges, isFunModeEnabled, toggleFunMode
+    } = useBoardStore();
     const { refreshData, isRefreshing } = useDataSync(); // Removed pushChanges
 
     /*
@@ -51,7 +54,7 @@ export default function Board() {
             const isDark = document.documentElement.classList.contains('dark');
             setTheme(isDark ? 'dark' : 'light');
         }
-    }, []);
+    }, [theme]);
 
     // Theme Toggle Logic
     useEffect(() => {
@@ -130,7 +133,7 @@ export default function Board() {
                                         Sprint Tetris
                                     </h1>
                                     {isDemoMode && (
-                                        <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border border-amber-200 dark:border-amber-800 self-center">
+                                        <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border border-amber-200 dark:border-amber-800 mt-1">
                                             Demo
                                         </span>
                                     )}
@@ -174,23 +177,24 @@ export default function Board() {
                                 <span>Sync</span>
                             </button>
 
-                            <div className="h-6 w-px bg-slate-200 dark:bg-zinc-700 mx-2" />
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={refreshData}
+                                    disabled={isRefreshing || isSyncing}
+                                    className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors text-slate-500 ${isRefreshing ? 'animate-spin' : ''}`}
+                                    title="Refresh Data from Asana"
+                                >
+                                    <RefreshCw size={20} />
+                                </button>
 
-                            <button
-                                onClick={refreshData}
-                                disabled={isRefreshing || isSyncing}
-                                className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors text-slate-500 ${isRefreshing ? 'animate-spin' : ''}`}
-                                title="Refresh Data from Asana"
-                            >
-                                <RefreshCw size={20} />
-                            </button>
-
-                            <button
-                                onClick={toggleTheme}
-                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors text-slate-500"
-                            >
-                                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                            </button>
+                                <button
+                                    onClick={toggleFunMode}
+                                    className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors ${isFunModeEnabled ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20' : 'text-slate-400'}`}
+                                    title={isFunModeEnabled ? "Turn Off Party Mode" : "Turn On Party Mode"}
+                                >
+                                    <PartyPopper size={20} className={isFunModeEnabled ? "animate-bounce" : ""} />
+                                </button>
+                            </div>
                         </div>
                     </header>
 

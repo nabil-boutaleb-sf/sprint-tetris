@@ -99,7 +99,18 @@ export const ChangeLogModal = ({ onClose }: ChangeLogModalProps) => {
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <div className="p-4 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex justify-between">
+                    <button
+                        onClick={() => {
+                            if (confirm("Are you sure you want to clear all pending changes? This cannot be undone.")) {
+                                useBoardStore.getState().clearPendingChanges();
+                                onClose();
+                            }
+                        }}
+                        className="px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm font-medium transition-colors"
+                    >
+                        Clear All
+                    </button>
                     <button
                         onClick={onClose}
                         className="px-4 py-2 rounded-lg bg-slate-900 dark:bg-slate-700 text-white text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors"
